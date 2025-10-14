@@ -1,109 +1,104 @@
-# 💰 **Bank Account** 💰
-🌐 Disponible en :  
-[🇫🇷 Français](README.md) | [🇬🇧 English](README.en.md)
+# 🧩 Corentin Lamblin Bank Account — Architecture Hexagonale (Maven Multi-Module)
 
-# Sujet
+## 🏗️ Structure du projet
 
-Ce kata est un challenge d'[architecture hexagonale](https://fr.wikipedia.org/wiki/Architecture_hexagonale) autour du domaine de la banque.
+Le projet suit une architecture **hexagonale (Ports & Adapters)** et est organisé en plusieurs modules Maven pour favoriser la séparation des responsabilités et la testabilité.
 
-## ⚠️ Modalités de candidatures ⚠️
+```
+corentin-lamblin-bank-account-v2/
+├── pom.xml                  # POM parent (gestion des dépendances, build global)
+├── README.md
+├── backend/
+│   ├── pom.xml              # POM du backend Spring Boot
+│   ├── application/         # Cas d’usage (services, orchestration)
+│   ├── domain/              # Modèle métier (entités, agrégats, ports)
+│   ├── infrastructure/      # Adapters techniques (base de données, REST, etc.)
+│   └── configuration/       # Configuration Spring Boot / injection de dépendances
+└── ...                      # Autres modules (shared-kernel, front, etc.)
+```
 
-> Ce kata a deux objectifs : 
-> - d'une part, permettre votre évaluation technique en tant que candidat ; 
-> - d'autre part servir de base à votre montée en compétences si vous nous rejoignez :smile:.
-> 
-> Il a donc volontairement un scope très large.
-> 
-> **Dans le premier cas (processus de recrutement), nous comprenons que le temps est une ressource précieuse et limitée. 
-> C'est pourquoi nous vous proposons trois niveaux d'engagement, selon le temps que vous pouvez y consacrer :**
->
-> 1. vous avez peu de temps (une soirée) : Concentrez-vous uniquement sur le code métier. 
->   - Assurez-vous qu'il est testé et fonctionnel, avec des adapteurs de tests. 
->   - **Nous ne vous tiendrons pas rigueur de ne pas avoir réalisé les autres parties.** 
->   - **Nous aborderons ensemble les éléments non couverts lors de l'entretien technique**
-> 2. vous avez plus de temps (plusieurs soirées) : le code métier, exposé derrière une api REST, et une persistance fonctionnelle ; le tout testé de bout en bout.
-> 3. vous avez beaucoup de temps, et envie d'aller plus loin : la même chose, avec la containerisation de l'application, et une pipeline de CI/CD ;p
-> 
-> Vous serez évalués notamment sur les points suivants :
-> 
-> - Tout code livré doit être testé de manière adéquate (cas passants et non passants)
-> - Nous serons très vigilants sur le design, la qualité, et la lisibilité du code (et des commits)
-> 
-> Nous comprenons que chaque candidat a des contraintes de temps différentes, et nous valoriserons votre capacité à prioriser et à livrer un travail de qualité dans le temps imparti.
->
+Chaque module est indépendant et communique via des **interfaces (ports)** définies dans le domaine.
 
-## Modalités de réalisation
+---
 
-> Pour réaliser ce kata : 
-> - Tirez une branche depuis main
-> - Réalisez vos développements sur cette branche
-> - Quand vous êtes prêts à effectuer votre rendu, ouvrez une merge request vers main 
->
-> ⚠️ L'ouverture de votre merge request déclenchera la revue de votre code !
-> 
->⚠️ Cette merge request sert de support à la revue de code, **NE LA MERGEZ PAS !**
->
+## ⚙️ Prérequis
 
+- **Java 17+**
+- **Maven 3.9+**
+- **Spring Boot 3+**
+- (Optionnel) Docker pour la base de données ou services externes
 
-### Feature 1 : le compte bancaire
+---
 
-On souhaite proposer une fonctionnalité de compte bancaire. 
+## 🚀 Lancer le projet
 
-Ce dernier devra disposer : 
+À la racine du projet :
 
-- D'un numéro de compte unique (format libre)
-- D'un solde
-- D'une fonctionnalité de dépôt d'argent
-- D'une fonctionnalité de retrait d'argent
+```bash
+mvn clean install
+```
 
-La règle métier suivante doit être implémentée : 
+Puis exécuter le backend (dans le module concerné) :
 
-- Un retrait ne peut pas être effectué s'il représente plus d'argent qu'il n'y en a sur le compte
+```bash
+mvn spring-boot:run -pl backend
+```
 
-__          
+---
 
-### Feature 2 : le découvert
+## 🧪 Tests
 
-On souhaite proposer un système de découvert autorisé sur les comptes bancaires.
+Lancer tous les tests :
 
-La règle métier suivante doit être implémentée : 
+```bash
+mvn test
+```
 
-- Si un compte dispose d'une autorisation de découvert, alors un retrait qui serait supérieur au solde du compte est autorisé
-si le solde final ne dépasse pas le montant de l'autorisation de découvert
+Pour un module spécifique :
 
-__
+```bash
+mvn test -pl backend
+```
 
-### Feature 3 : le livret
+---
 
-On souhaite proposer un livret d'épargne.
+## 🧱 Convention de code
 
-Un livret d'épargne est un compte bancaire qui : 
+- **Langage** : Java 17  
+- **Style** : [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html)  
+- **Tests** : JUnit 5 + Mockito  
+- **Couverture minimale** : 80% sur le domaine et l’application  
+- **Nom des branches** :  
+  - `feature/nom-fonctionnalite`
+  - `fix/description-bug`
+  - `chore/maintenance`
 
-- Dispose d'un plafond de dépôt : on ne peut déposer d'argent sur ce compte que dans la limite du plafond du compte (exemple : 22950€ sur un livret A)
-- Ne peut pas avoir d'autorisation de découvert
+---
 
-__
+## 🤝 Contribution
 
-### Feature 4 : le relevé de compte
-
-On souhaite proposer une fonctionnalité de relevé mensuel (sur un mois glissant) des opérations sur le compte
-
-Ce relevé devra faire apparaître : 
-
-- Le type de compte (Livret ou Compte Courant)
-- Le solde du compte à la date d'émission du relevé
-- La liste des opérations ayant eu lieu sur le compte, triées par date, dans l'ordre antéchronologique
-
-## Bonne chance !
+1. Créer une branche à partir de `corentin/dev`
+2. Commit clair et concis (`feat(module):`, `fix(module):`, `test(module):`, `docs(module):`…)
 
 
-![archi-hexa](./assets/hexa-schema.png)
+---
 
+## 📂 Ressources complémentaires
 
- 
+- [Guide d’architecture hexagonale — Alistair Cockburn](https://alistair.cockburn.us/hexagonal-architecture/)
+- [Documentation Spring Boot](https://docs.spring.io/spring-boot/docs/current/reference/html/)
+- [Documentation Maven](https://maven.apache.org/guides/)
 
+---
 
+## 🧑‍💻 Équipe
 
+| Rôle | Nom | Contact |
+|------|------|----------|
+| Développeur principal | Corentin Lamblin | corentin.lamblin@example.com |
 
+---
 
+## 📄 Licence
 
+Ce projet est sous licence MIT — voir le fichier [LICENSE](LICENSE) pour plus de détails.
