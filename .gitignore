@@ -1,2 +1,20 @@
-/.idea/
+# Maven
+target/
+*.log
+!.mvn/wrapper/maven-wrapper.jar
+
+# IntelliJ / Eclipse
+.idea/
 *.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build output
+out/

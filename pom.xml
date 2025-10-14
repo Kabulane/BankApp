@@ -1,0 +1,103 @@
+<!-- pom.xml (racine du projet Bank Account Kata) -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Informations globales -->
+    <groupId>com.exalt</groupId>
+    <artifactId>bank-account-kata</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Bank Account Kata - Exalt</name>
+    <description>Kata technique Exalt - Bank Account (Java 17, Spring Boot, Vue 3)</description>
+
+    <!-- Modules Maven -->
+    <modules>
+        <module>backend</module>
+    </modules>
+
+    <!-- Propriétés globales -->
+    <properties>
+        <java.version>17</java.version>
+        <spring.boot.version>3.3.4</spring.boot.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
+    </properties>
+
+    <!-- Gestion centralisée des versions -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- Plugins Maven communs -->
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Compilation Java 17 -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.11.0</version>
+                    <configuration>
+                        <release>${java.version}</release>
+                    </configuration>
+                </plugin>
+
+                <!-- Tests -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.2.5</version>
+                </plugin>
+
+                <!-- Packaging JAR (Spring Boot utilisera ce plugin dans `boot/`) -->
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring.boot.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <!-- Métadonnées projet -->
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>corentin-lamblin</id>
+            <name>Corentin Lamblin</name>
+            <organization>Exalt Dojo Candidate</organization>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:gitlab.com/exalt-it-dojo/candidats/corentin-lamblin-bank-account.git</connection>
+        <developerConnection>scm:git:ssh://git@gitlab.com/exalt-it-dojo/candidats/corentin-lamblin-bank-account.git</developerConnection>
+        <url>https://gitlab.com/exalt-it-dojo/candidats/corentin-lamblin-bank-account.git</url>
+        <tag>HEAD</tag>
+    </scm>
+</project>
