@@ -11,10 +11,18 @@ public record Money(BigDecimal value) {
     }
 
     public static Money of(String s) {
-        return null;
+        return new Money(new BigDecimal(s));
     }
 
     public static Money zero() {
         return new Money(BigDecimal.ZERO);
+    }
+
+    public boolean isLessThanOrEqual(Money zero) {
+        return (this.value.compareTo(zero.value()) < 0 || this.value.compareTo(zero.value()) == 0);
+    }
+
+    public Money add(Money other) {
+        return new Money(this.value().add(other.value()));
     }
 }

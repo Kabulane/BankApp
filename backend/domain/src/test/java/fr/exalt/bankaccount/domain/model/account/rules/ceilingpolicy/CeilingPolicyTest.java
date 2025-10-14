@@ -4,6 +4,7 @@ import fr.exalt.bankaccount.domain.model.Money;
 import fr.exalt.bankaccount.domain.model.exception.DomainException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -38,6 +39,7 @@ class CeilingPolicyTest {
          * Vérifie que {@link NoCeiling} autorise tout montant strictement positif.
          * <p>
          * Ce test garantit qu’aucune exception n’est levée pour des montants valides.
+         * </p>
          *
          * @param amount montant du dépôt sous forme textuelle
          */
@@ -51,9 +53,10 @@ class CeilingPolicyTest {
         }
 
         /**
-         * Vérifie que {@link NoCeiling} rejette les dépôts nuls ou négatifs.
+         * Vérifie que {@link NoCeiling} rejette les dépôts inférieurs ou égaux à 0.00.
          * <p>
          * Le dépôt de 0 ou de valeur négative doit lever une {@link DomainException}.
+         * </p>
          *
          * @param amount montant invalide du dépôt
          */
@@ -64,6 +67,21 @@ class CeilingPolicyTest {
             assertThatThrownBy(() -> policy.validateDeposit(null, Money.of(amount)))
                     .isInstanceOf(DomainException.class)
                     .hasMessage("Deposit must be positive and greater than 0.00");
+        }
+
+        /**
+         * Vérifie que {@link NoCeiling} rejette les dépôts null.
+         * <p>
+         * Le dépôt de null lève une DomainException {@link DomainException}.
+         * </p>
+         *
+         */
+        @Test
+        @DisplayName("refuse null")
+        void rejects_null_deposit() {
+            assertThatThrownBy(() -> policy.validateDeposit(null, null))
+                    .isInstanceOf(DomainException.class)
+                    .hasMessage("Deposit cannot be null");
         }
     }
 
@@ -86,7 +104,7 @@ class CeilingPolicyTest {
          * @param depositValue montant du dépôt autorisé
          */
         @ParameterizedTest
-        @ValueSource(strings = {"0.01", "50.00", "100.00"})
+        @ValueSource(strings = {"0.01", "50.00", "25.00"})
         @DisplayName("autorise ≤ plafond et > 0")
         void allows_up_to_ceiling_inclusive(String depositValue) {
             assertThatCode(() -> policy.validateDeposit(BALANCE, Money.of(depositValue)))
@@ -97,6 +115,7 @@ class CeilingPolicyTest {
          * Vérifie que {@link FixedCeiling} rejette tout dépôt supérieur au plafond autorisé.
          * <p>
          * Une {@link DomainException} doit être levée avec un message explicite.
+         * </p>
          *
          * @param depositValue montant du dépôt supérieur au plafond
          */
@@ -110,8 +129,11 @@ class CeilingPolicyTest {
         }
 
         /**
-         * Vérifie que {@link FixedCeiling} rejette les dépôts nuls ou négatifs,
-         * indépendamment de la valeur du plafond.
+         * Vérifie que {@link FixedCeiling} rejette les dépôts inférieurs ou égaux à 0.00.
+         * Indépendamment de la valeur du plafond.
+         * <p>
+         * Le dépôt de 0 ou de valeur négative doit lever une {@link DomainException}.
+         * </p>
          *
          * @param depositValue montant invalide du dépôt
          */
@@ -122,6 +144,36 @@ class CeilingPolicyTest {
             assertThatThrownBy(() -> policy.validateDeposit(BALANCE, Money.of(depositValue)))
                     .isInstanceOf(DomainException.class)
                     .hasMessage("Deposit must be positive and greater than 0.00");
+        }
+
+        /**
+         * Vérifie que {@link FixedCeiling} rejette les dépôts null.
+         * <p>
+         * Le dépôt de null lève une DomainException {@link DomainException}.
+         * </p>
+         *
+         */
+        @Test
+        @DisplayName("refuse null deposit")
+        void rejects_null_deposit() {
+            assertThatThrownBy(() -> policy.validateDeposit(Money.of("100.00"), null))
+                    .isInstanceOf(DomainException.class)
+                    .hasMessage("Deposit cannot be null");
+        }
+
+        /**
+         * Vérifie que {@link FixedCeiling} rejette les balance null.
+         * <p>
+         * Une balance null lève une DomainException {@link DomainException}.
+         * </p>
+         *
+         */
+        @Test
+        @DisplayName("refuse null balance")
+        void rejects_null_balance() {
+            assertThatThrownBy(() -> policy.validateDeposit(null, Money.of("100.00")))
+                    .isInstanceOf(DomainException.class)
+                    .hasMessage("Balance cannot be null");
         }
     }
 }
