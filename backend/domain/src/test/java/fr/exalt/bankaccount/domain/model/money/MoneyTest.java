@@ -89,6 +89,36 @@ public class MoneyTest {
         assertThat(Money.zero().greaterThanOrEqual(m1)).isTrue();
     }
 
+    @Test
+    @DisplayName("Compare correctement avec isLessThan")
+    void comparison_lt_works() {
+        Money m1 = Money.of("0.00");
+        Money m2 = Money.of("0.01");
+        Money m3 = Money.of("0.015");
+        Money m4 = Money.of("0.0153");
+
+        assertThat(m2.isLessThan(m1)).isFalse();
+        assertThat(m1.isLessThan(m2)).isTrue();
+        assertThat(m3.isLessThan(m2)).isFalse();
+        assertThat(m4.isLessThan(m3)).isFalse();
+        assertThat(Money.zero().isLessThan(m1)).isFalse();
+    }
+
+    @Test
+    @DisplayName("Compare correctement avec isGreaterThan")
+    void comparison_gt_works() {
+        Money m1 = Money.of("0.00");
+        Money m2 = Money.of("0.01");
+        Money m3 = Money.of("0.015");
+        Money m4 = Money.of("0.0153");
+
+        assertThat(m1.isGreaterThan(m2)).isFalse();
+        assertThat(m2.isGreaterThan(m1)).isTrue();
+        assertThat(m2.isGreaterThan(m3)).isFalse();
+        assertThat(m3.isGreaterThan(m4)).isFalse();
+        assertThat(Money.zero().isGreaterThan(m1)).isFalse();
+    }
+
     /**
      * Vérifie que la création d'un {@link Money} avec une valeur nulle ou non numérique
      * lève les exceptions appropriées.
@@ -140,6 +170,7 @@ public class MoneyTest {
         assertThat(m1.subtract(m3)).isEqualTo(Money.of("0.60"));
         assertThat(m1.subtract(m4)).isEqualTo(Money.of("1.1"));
     }
+
 
 
 }

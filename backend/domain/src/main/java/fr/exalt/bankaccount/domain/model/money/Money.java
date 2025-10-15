@@ -26,6 +26,14 @@ public record Money(BigDecimal value) {
         return (this.value.compareTo(other.value()) >= 0);
     }
 
+    public boolean isGreaterThan(Money other) {
+        return (this.value.compareTo(other.value()) > 0);
+    }
+
+    public boolean isLessThan(Money other) {
+        return (this.value.compareTo(other.value()) < 0);
+    }
+
     public Money add(Money other) {
         return new Money(this.value().add(other.value()));
     }
@@ -34,4 +42,6 @@ public record Money(BigDecimal value) {
     public Money subtract(Money other) {
         return new Money((this.value().subtract(other.value())));
     }
+
+
 }
