@@ -1,6 +1,5 @@
 package fr.exalt.bankaccount.domain.model.account.rules.overdraftpolicy;
 
-import fr.exalt.bankaccount.domain.model.account.rules.ceilingpolicy.FixedCeiling;
 import fr.exalt.bankaccount.domain.model.exception.DomainException;
 import fr.exalt.bankaccount.domain.model.money.Money;
 import org.junit.jupiter.api.DisplayName;
@@ -63,11 +62,11 @@ public class OverDraftPolicyTest {
          */
         @ParameterizedTest
         @ValueSource(strings = {"0.00", "-0.01", "-10.00"})
-        @DisplayName("refuse zéro ou négatif")
+        @DisplayName("refuse retraits zéro ou négatif")
         void rejects_zero_or_negative(String amount) {
-            assertThatThrownBy(() -> policy.validateWithdraw(null, Money.of(amount)))
+            assertThatThrownBy(() -> policy.validateWithdraw(Money.zero(), Money.of(amount)))
                     .isInstanceOf(DomainException.class)
-                    .hasMessage("Withdrawals must be positive and greater than 0.00");
+                    .hasMessage("Withdraw amount must be greater than 0.00");
         }
 
         /**
@@ -80,13 +79,13 @@ public class OverDraftPolicyTest {
          */
         @ParameterizedTest
         @ValueSource(strings = {"10.05", "15.01"})
-        @DisplayName("refuse zéro ou négatif")
+        @DisplayName("refuse balance finale négative")
         void rejects_negative_result_balance(String amount) {
             Money balance = Money.of("10");
 
             assertThatThrownBy(() -> policy.validateWithdraw(balance, Money.of(amount)))
                     .isInstanceOf(DomainException.class)
-                    .hasMessage("Withdrawals must be positive and greater than 0.00");
+                    .hasMessage("Withdraw would exceeds overdraft limit");
         }
 
         /**
@@ -101,7 +100,7 @@ public class OverDraftPolicyTest {
         void rejects_null_withdraw() {
             assertThatThrownBy(() -> policy.validateWithdraw(Money.of("10"), null))
                     .isInstanceOf(DomainException.class)
-                    .hasMessage("Withdrawal cannot be null");
+                    .hasMessage("Withdraw cannot be null");
         }
 
         /**
@@ -162,7 +161,7 @@ public class OverDraftPolicyTest {
         void rejects_above_overdraft(String withDrawValue) {
             assertThatThrownBy(() -> policy.validateWithdraw(BALANCE, Money.of(withDrawValue)))
                     .isInstanceOf(DomainException.class)
-                    .hasMessage("Withdraw exceeds overdraft");
+                    .hasMessage("Withdraw would exceeds overdraft limit");
         }
 
         /**
@@ -180,7 +179,7 @@ public class OverDraftPolicyTest {
         void rejects_zero_or_negative(String withdrawValue) {
             assertThatThrownBy(() -> policy.validateWithdraw(BALANCE, Money.of(withdrawValue)))
                     .isInstanceOf(DomainException.class)
-                    .hasMessage("Withdraw must be positive and greater than 0.00");
+                    .hasMessage("Withdraw amount must be greater than 0.00");
         }
 
         /**
@@ -194,7 +193,7 @@ public class OverDraftPolicyTest {
         void rejects_null_withdraw() {
             assertThatThrownBy(() -> policy.validateWithdraw(Money.of("100.00"), null))
                     .isInstanceOf(DomainException.class)
-                    .hasMessage("withdraw cannot be null");
+                    .hasMessage("Withdraw cannot be null");
         }
 
         /**
