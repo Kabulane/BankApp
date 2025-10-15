@@ -1,6 +1,6 @@
 package fr.exalt.bankaccount.domain.model.account.rules.ceilingpolicy;
 
-import fr.exalt.bankaccount.domain.model.Money;
+import fr.exalt.bankaccount.domain.model.money.Money;
 import fr.exalt.bankaccount.domain.model.exception.DomainException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

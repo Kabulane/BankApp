@@ -1,4 +1,4 @@
-package fr.exalt.bankaccount.domain.model;
+package fr.exalt.bankaccount.domain.model.money;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -18,11 +18,20 @@ public record Money(BigDecimal value) {
         return new Money(BigDecimal.ZERO);
     }
 
-    public boolean isLessThanOrEqual(Money zero) {
-        return (this.value.compareTo(zero.value()) < 0 || this.value.compareTo(zero.value()) == 0);
+    public boolean isLessThanOrEqual(Money other) {
+        return (this.value.compareTo(other.value()) <= 0);
+    }
+
+    public boolean greaterThanOrEqual(Money other) {
+        return (this.value.compareTo(other.value()) >= 0);
     }
 
     public Money add(Money other) {
         return new Money(this.value().add(other.value()));
+    }
+
+
+    public Money subtract(Money other) {
+        return new Money((this.value().subtract(other.value())));
     }
 }
