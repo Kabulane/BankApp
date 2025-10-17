@@ -9,7 +9,7 @@ import java.time.Instant;
 public record Operation(OperationId id, AccountId accountId, Money amount, Type type, Instant at, String label) {
 
     /**
-     * Use {@link #of(AccountId, Money, Type)} to create operations.
+     * Use {@link #of(AccountId, Money, Type)} to create new operations.
      * This constructor is intended for persistence only.
      */
     public Operation {

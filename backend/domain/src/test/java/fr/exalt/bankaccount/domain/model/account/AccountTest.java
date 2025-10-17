@@ -34,7 +34,7 @@ class AccountTest {
 
     @Test
     void should_open_current_account_with_zero_balance_and_no_operations_and_correct_policies() {
-        Account acc = Account.openCurrent(accountId, Money.of("0"), fixedClock);
+        Account acc = Account.openCurrent(Money.of("0"), fixedClock);
 
         Assertions.assertNotNull(acc);
         assertThat(acc.getType()).isEqualTo(Account.Type.CURRENT);
@@ -48,7 +48,7 @@ class AccountTest {
 
     @Test
     void should_open_savings_account_with_zero_balance_and_no_operations_and_correct_policies() {
-        Account acc = Account.openSavings(accountId, Money.of("10_000"), fixedClock);
+        Account acc = Account.openSavings(Money.of("10000"), fixedClock);
 
         Assertions.assertNotNull(acc);
         assertThat(acc.getType()).isEqualTo(Account.Type.SAVINGS);
@@ -66,18 +66,18 @@ class AccountTest {
 
     @Test
     void current_account_should_reject_positive_overdraft() {
-        assertThatThrownBy(() -> Account.openCurrent(accountId, Money.of("50"), fixedClock))
+        assertThatThrownBy(() -> Account.openCurrent(Money.of("50"), fixedClock))
                 .isInstanceOf(DomainException.class)
-                .hasMessage("Overdraft limit must be zero or negative.");
+                .hasMessage("Overdraft limit must be zero or negative");
     }
 
     @Test
     void savings_account_should_require_strictly_positive_ceiling() {
-        assertThatThrownBy(() -> Account.openSavings(accountId, Money.zero(), fixedClock))
+        assertThatThrownBy(() -> Account.openSavings(Money.zero(), fixedClock))
                 .isInstanceOf(DomainException.class)
                 .hasMessage("Ceiling must be strictly positive.");
 
-        assertThatThrownBy(() -> Account.openSavings(accountId, Money.of("-1"), fixedClock))
+        assertThatThrownBy(() -> Account.openSavings(Money.of("-1"), fixedClock))
                 .isInstanceOf(DomainException.class)
                 .hasMessage("Ceiling must be strictly positive.");
     }
@@ -148,7 +148,7 @@ class AccountTest {
 
     @Test
     void current_account_deposit_should_increase_balance_and_record_operation() {
-        Account acc = Account.openCurrent(accountId, Money.of("0"), fixedClock);
+        Account acc = Account.openCurrent(Money.of("0"), fixedClock);
 
         Assertions.assertNotNull(acc);
         acc.deposit(Money.of("250"));
@@ -162,7 +162,7 @@ class AccountTest {
 
     @Test
     void current_account_withdraw_should_obey_overdraft_limit() {
-        Account acc = Account.openCurrent(accountId, Money.of("-100"), fixedClock);
+        Account acc = Account.openCurrent(Money.of("-100"), fixedClock);
 
         Assertions.assertNotNull(acc);
         acc.withdraw(Money.of("60")); // balance = -60
@@ -173,7 +173,7 @@ class AccountTest {
 
         assertThatThrownBy(() -> acc.withdraw(Money.of("1"))) // irait à -101
                 .isInstanceOf(DomainException.class)
-                .hasMessage("Overdraft exceeded.");
+                .hasMessage("Withdraw would exceeds overdraft limit");
 
         assertThat(acc.getOperations().stream().filter(
                 o -> o.type() == WITHDRAWAL).count()
@@ -186,28 +186,28 @@ class AccountTest {
 
     @Test
     void savings_account_deposit_must_respect_ceiling() {
-        Account acc = Account.openSavings(accountId, Money.of("1000"), fixedClock);
+        Account acc = Account.openSavings(Money.of("1000"), fixedClock);
 
         Assertions.assertNotNull(acc);
         acc.deposit(Money.of("900")); // balance = 900
 
         assertThatThrownBy(() -> acc.deposit(Money.of("200"))) // 1100 > 1000
                 .isInstanceOf(DomainException.class)
-                .hasMessage("Deposit would exceed account ceiling.");
+                .hasMessage("Deposit exceeds ceiling");
 
         assertThat(acc.getBalance()).isEqualTo(Money.of("900"));
     }
 
     @Test
     void savings_account_withdraw_should_not_allow_negative_balance() {
-        Account acc = Account.openSavings(accountId, Money.of("500"), fixedClock);
+        Account acc = Account.openSavings(Money.of("500"), fixedClock);
 
         Assertions.assertNotNull(acc);
         acc.deposit(Money.of("50")); // balance = 50
 
         assertThatThrownBy(() -> acc.withdraw(Money.of("60")))
                 .isInstanceOf(DomainException.class)
-                .hasMessage("Withdraw would make balance negative and overdraft is not allowed.");
+                .hasMessage("Withdraw would exceeds overdraft limit");
 
         assertThat(acc.getBalance()).isEqualTo(Money.of("50"));
     }
@@ -218,7 +218,7 @@ class AccountTest {
 
     @Test
     void deposit_and_withdraw_should_reject_non_positive_amounts_with_exact_messages() {
-        Account acc = Account.openCurrent(accountId, Money.of("0"), fixedClock);
+        Account acc = Account.openCurrent(Money.of("0"), fixedClock);
 
         Assertions.assertNotNull(acc);
         assertThatThrownBy(() -> acc.deposit(Money.zero()))
@@ -246,7 +246,7 @@ class AccountTest {
     @Test
     @DisplayName("adjustOverdraftLimit sur CURRENT avec -50 → OK et policy = FixedOverdraft(-50)")
     void adjust_overdraft_limit_on_current_should_update_policy_and_value() {
-        Account acc = Account.openCurrent(accountId, Money.of("0"), fixedClock);
+        Account acc = Account.openCurrent(Money.of("0"), fixedClock);
 
         Assertions.assertNotNull(acc);
         acc.adjustOverdraftLimit(Money.of("-50"));
@@ -258,7 +258,7 @@ class AccountTest {
     @Test
     @DisplayName("adjustOverdraftLimit sur SAVINGS → jette 'Only CURRENT accounts can adjust overdraft.'")
     void adjust_overdraft_limit_on_savings_should_throw() {
-        Account acc = Account.openSavings(accountId, Money.of("5000"), fixedClock);
+        Account acc = Account.openSavings(Money.of("5000"), fixedClock);
 
         Assertions.assertNotNull(acc);
         assertThatThrownBy(() -> acc.adjustOverdraftLimit(Money.of("-50")))
@@ -269,7 +269,7 @@ class AccountTest {
     @Test
     @DisplayName("adjustCeiling sur SAVINGS avec 5000 → OK et policy = FixedCeiling(5000)")
     void adjust_ceiling_on_savings_should_update_policy_and_value() {
-        Account acc = Account.openSavings(accountId, Money.of("1000"), fixedClock);
+        Account acc = Account.openSavings(Money.of("1000"), fixedClock);
 
         Assertions.assertNotNull(acc);
         acc.adjustCeiling(Money.of("5000"));
@@ -281,7 +281,7 @@ class AccountTest {
     @Test
     @DisplayName("adjustCeiling sur CURRENT → jette 'Only SAVINGS accounts can adjust ceiling.'")
     void adjust_ceiling_on_current_should_throw() {
-        Account acc = Account.openCurrent(accountId, Money.of("0"), fixedClock);
+        Account acc = Account.openCurrent(Money.of("0"), fixedClock);
 
         Assertions.assertNotNull(acc);
         assertThatThrownBy(() -> acc.adjustCeiling(Money.of("5000")))
@@ -292,7 +292,7 @@ class AccountTest {
     @Test
     @DisplayName("adjustOverdraftLimit : rejette une valeur > 0 avec message exact")
     void adjust_overdraft_limit_positive_should_throw_exact_message() {
-        Account acc = Account.openCurrent(accountId, Money.of("0"), fixedClock);
+        Account acc = Account.openCurrent(Money.of("0"), fixedClock);
 
         Assertions.assertNotNull(acc);
         assertThatThrownBy(() -> acc.adjustOverdraftLimit(Money.of("1")))
@@ -303,7 +303,7 @@ class AccountTest {
     @Test
     @DisplayName("adjustCeiling : rejette une valeur <= 0 avec message exact")
     void adjust_ceiling_non_positive_should_throw_exact_message() {
-        Account acc = Account.openSavings(accountId, Money.of("1000"), fixedClock);
+        Account acc = Account.openSavings(Money.of("1000"), fixedClock);
 
         Assertions.assertNotNull(acc);
         assertThatThrownBy(() -> acc.adjustCeiling(Money.zero()))
@@ -322,7 +322,7 @@ class AccountTest {
     @Test
     @DisplayName("addOperationToOperationList (CURRENT) : stocke en ordre 'at' décroissant (plus récente d'abord)")
     void add_operation_orders_reverse_chrono_on_current() {
-        Account acc = Account.openCurrent(accountId, Money.of("0"), fixedClock);
+        Account acc = Account.openCurrent(Money.of("0"), fixedClock);
 
         Instant t1 = Instant.parse("2024-01-01T10:00:00Z");
         Instant t2 = Instant.parse("2024-01-01T11:00:00Z");

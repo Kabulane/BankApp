@@ -12,20 +12,8 @@ import fr.exalt.bankaccount.domain.model.exception.DomainException;
  */
 public class NoCeiling implements CeilingPolicy {
 
-    /**
-     * Valide un dépôt sans appliquer de plafond.
-     * <p>
-     * Contrats minimalistes :
-     * <ul>
-     *   <li>{@code deposit} ne doit pas être null.</li>
-     *   <li>{@code deposit} doit être strictement supérieur à 0.00.</li>
-     *   <li>Aucun contrôle n'est fait sur {@code balance} (ignoré par conception).</li>
-     * </ul>
-     *
-     * @param balance solde courant (ignoré)
-     * @param deposit  montant du dépôt (doit être non nul)
-     * @throws DomainException si {@code deposit} est nul ou non positif
-     */
+    // TODO: déléguer la validation de null et montants négatifs à Account
+    // pour respecter une séparation plus claire des invariants métier
     @Override
     public void validateDeposit(Money /* unused */ balance, Money deposit) {
         if (deposit == null) {

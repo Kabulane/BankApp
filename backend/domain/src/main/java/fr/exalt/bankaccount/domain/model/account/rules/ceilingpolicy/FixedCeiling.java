@@ -3,6 +3,12 @@ package fr.exalt.bankaccount.domain.model.account.rules.ceilingpolicy;
 import fr.exalt.bankaccount.domain.model.money.Money;
 import fr.exalt.bankaccount.domain.model.exception.DomainException;
 
+/**
+ * Politique de plafond limite.
+ * <p>
+ * Cette implémentation impose un plafond : tout dépôt menant à une balance supérieure au plafond est refusé.
+ * </p>
+ */
 public class FixedCeiling implements CeilingPolicy {
     private final Money ceiling;
 
@@ -10,6 +16,8 @@ public class FixedCeiling implements CeilingPolicy {
         this.ceiling = ceiling;
     }
 
+    // TODO: déléguer la validation de null et montants négatifs à Account
+    // pour respecter une séparation plus claire des invariants métier
     @Override
     public void validateDeposit(Money balance, Money deposit) {
         if (balance == null) {
@@ -25,5 +33,9 @@ public class FixedCeiling implements CeilingPolicy {
         if (!(deposit.add(balance).isLessThanOrEqual(ceiling))) {
             throw new DomainException("Deposit exceeds ceiling");
         }
+    }
+
+    public Money getCeiling() {
+        return ceiling;
     }
 }
