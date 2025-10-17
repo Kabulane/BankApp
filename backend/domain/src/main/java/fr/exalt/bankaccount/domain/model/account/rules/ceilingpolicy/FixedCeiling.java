@@ -1,37 +1,33 @@
 package fr.exalt.bankaccount.domain.model.account.rules.ceilingpolicy;
 
+import fr.exalt.bankaccount.domain.model.exception.CeilingExceededException;
 import fr.exalt.bankaccount.domain.model.money.Money;
 import fr.exalt.bankaccount.domain.model.exception.DomainException;
 
+import java.util.Objects;
+
 /**
- * Politique de plafond limite.
- * <p>
- * Cette implémentation impose un plafond : tout dépôt menant à une balance supérieure au plafond est refusé.
- * </p>
+ * Politique de plafond fixe.
+ * Ne lève que des exceptions métier (dépassement de plafond).
+ * Les invariants (null, positifs, etc.) sont garantis par l'agrégat Account.
  */
 public class FixedCeiling implements CeilingPolicy {
     private final Money ceiling;
 
     public FixedCeiling(Money ceiling) {
-        this.ceiling = ceiling;
+        this.ceiling = Objects.requireNonNull(ceiling, "ceiling");
     }
 
     // TODO: déléguer la validation de null et montants négatifs à Account
     // pour respecter une séparation plus claire des invariants métier
     @Override
     public void validateDeposit(Money balance, Money deposit) {
-        if (balance == null) {
-            throw new DomainException("Balance cannot be null");
-        }
-        if (deposit == null) {
-            throw new DomainException("Deposit cannot be null");
-        }
-        if (deposit.isLessThanOrEqual(Money.zero())) {
-            throw new DomainException("Deposit must be positive and greater than 0.00");
-        }
-        // On vérifie que la somme du deposit et de la balance actuelle ne dépasse pas le plafond
-        if (!(deposit.add(balance).isLessThanOrEqual(ceiling))) {
-            throw new DomainException("Deposit exceeds ceiling");
+        Objects.requireNonNull(balance, "balance");
+        Objects.requireNonNull(deposit, "deposit");
+
+        // Seule règle métier propre à la policy : ne pas dépasser le plafond
+        if (!deposit.add(balance).isLessThanOrEqual(ceiling)) {
+            throw new CeilingExceededException(balance, deposit, ceiling);
         }
     }
 

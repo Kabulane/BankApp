@@ -1,32 +1,38 @@
 package fr.exalt.bankaccount.domain.model.account.rules.overdraftpolicy;
 
 import fr.exalt.bankaccount.domain.model.exception.DomainException;
+import fr.exalt.bankaccount.domain.model.exception.InsufficientFundsException;
 import fr.exalt.bankaccount.domain.model.money.Money;
+
+import java.util.Objects;
 
 /**
  * Politique de découvert non autorisé.
  * <p>
- * Cette implémentation empêche tout découvert : tout retrait résultant à une balance négative est refusé.
+ * Cette implémentation interdit tout découvert :
+ * tout retrait qui rendrait la balance négative est refusé.
  * </p>
+ *
+ * <h3>Responsabilités :</h3>
+ * <ul>
+ *   <li>Vérifie que la balance reste ≥ 0 après un retrait.</li>
+ *   <li>Ne gère pas les invariants (montants positifs, null, etc.),
+ *       qui sont garantis par l’agrégat {@link fr.exalt.bankaccount.domain.model.account.Account}.</li>
+ * </ul>
+ *
  */
 public class NoOverdraft implements OverdraftPolicy {
-    private static final Money overdraftLimit = Money.of("0");
+    /** Seuil minimal de balance autorisé (0.00). */
+    private static final Money OVERDRAFT_LIMIT = Money.zero();
 
-    // TODO: déléguer la validation de null et montants négatifs à Account
-    // pour respecter une séparation plus claire des invariants métier
     @Override
     public void validateWithdraw(Money balance, Money withdraw) {
-        if (balance == null) {
-            throw new DomainException("Balance cannot be null");
-        }
-        if (withdraw == null) {
-            throw new DomainException("Withdraw cannot be null");
-        }
-        if (withdraw.isLessThanOrEqual(Money.zero())) {
-            throw new DomainException("Withdraw amount must be greater than 0.00");
-        }
-        if (balance.subtract(withdraw).isLessThan(overdraftLimit)) {
-            throw new DomainException("Withdraw would exceeds overdraft limit");
+        Objects.requireNonNull(balance, "balance");
+        Objects.requireNonNull(withdraw, "withdraw");
+
+        // Règle métier : le solde après retrait ne doit pas être négatif
+        if (balance.subtract(withdraw).isLessThan(OVERDRAFT_LIMIT)) {
+            throw new InsufficientFundsException(balance, withdraw, OVERDRAFT_LIMIT);
         }
     }
 }

@@ -1,6 +1,6 @@
 package fr.exalt.bankaccount.domain.model.account.rules.overdraftpolicy;
 
-import fr.exalt.bankaccount.domain.model.exception.DomainException;
+import fr.exalt.bankaccount.domain.model.exception.InsufficientFundsException;
 import fr.exalt.bankaccount.domain.model.money.Money;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,18 +16,21 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * <p>
  * Couvre les comportements des deux stratégies :
  * <ul>
- *   <li>{@link NoOverdraft} : aucun découvert, mais dépôt strictement positif requis</li>
- *   <li>{@link FixedOverdraft} : découvert fixe, la difference du retrait et de la balance actuelle
- *      du compte ne doit pas être inférieure au découvert</li>
+ *   <li>{@link NoOverdraft} : aucun découvert (balance finale doit rester ≥ 0)</li>
+ *   <li>{@link FixedOverdraft} : découvert fixe (balance finale doit rester ≥ limite de découvert)</li>
  * </ul>
- * Les tests vérifient la conformité des règles métier, les cas limites (0, négatif, arrondis)
- * et la cohérence des exceptions levées.
+ * <p>
+ * Les invariants d'entrée (null, montants non positifs) sont garantis par l'agrégat Account
+ * et ne sont pas testés ici. Les policies lèvent uniquement des exceptions métier
+ * spécifiques : {@link InsufficientFundsException}.
+ * </p>
  */
 @DisplayName("OverdraftPolicy")
 public class OverDraftPolicyTest {
+
     /**
      * Groupe de tests pour la stratégie {@link NoOverdraft},
-     * qui autorise tout retrait dans la limite maximale (Balance >= 0).
+     * qui interdit tout découvert : la balance après retrait doit rester ≥ 0.00.
      */
     @Nested
     @DisplayName("NoOverdraft")
@@ -36,46 +39,21 @@ public class OverDraftPolicyTest {
         private final NoOverdraft policy = new NoOverdraft();
 
         /**
-         * Vérifie que {@link NoOverdraft} autorise tout montant strictement positif tant
-         * que le résultat de la soustraction est supérieur ou égale à 0.00.
-         * <p>
-         * Ce test garantit qu’aucune exception n’est levée pour des montants valides.
-         * </p>
+         * Vérifie que {@link NoOverdraft} autorise tout retrait strictement positif tant
+         * que le résultat balance - withdraw est ≥ 0.00.
          *
-         * @param amount montant du dépôt sous forme textuelle
+         * @param amount montant du retrait sous forme textuelle
          */
         @ParameterizedTest
         @ValueSource(strings = {"0.01", "10.00", "1000000.00"})
-        @DisplayName("autorise tout retrait strictement positif")
+        @DisplayName("autorise tout retrait si balance finale ≥ 0")
         void allows_any_strictly_positive_amount(String amount) {
             assertThatCode(() -> policy.validateWithdraw(Money.of("1000000"), Money.of(amount)))
                     .doesNotThrowAnyException();
         }
 
         /**
-         * Vérifie que {@link NoOverdraft} rejette les retraits inférieurs ou égaux à 0.00.
-         * <p>
-         * Le retrait de 0 ou de valeur négative doit lever une {@link DomainException}.
-         * </p>
-         *
-         * @param amount montant invalide du dépôt
-         */
-        @ParameterizedTest
-        @ValueSource(strings = {"0.00", "-0.01", "-10.00"})
-        @DisplayName("refuse retraits zéro ou négatif")
-        void rejects_zero_or_negative(String amount) {
-            assertThatThrownBy(() -> policy.validateWithdraw(Money.zero(), Money.of(amount)))
-                    .isInstanceOf(DomainException.class)
-                    .hasMessage("Withdraw amount must be greater than 0.00");
-        }
-
-        /**
-         * Vérifie que {@link NoOverdraft} rejette les retraits donnant une balance inférieure à 0.00.
-         * <p>
-         * Le retrait de 0 ou de valeur négative doit lever une {@link DomainException}.
-         * </p>
-         *
-         * @param amount montant invalide du dépôt
+         * Vérifie que {@link NoOverdraft} rejette les retraits donnant une balance finale < 0.00.
          */
         @ParameterizedTest
         @ValueSource(strings = {"10.05", "15.01"})
@@ -84,44 +62,14 @@ public class OverDraftPolicyTest {
             Money balance = Money.of("10");
 
             assertThatThrownBy(() -> policy.validateWithdraw(balance, Money.of(amount)))
-                    .isInstanceOf(DomainException.class)
-                    .hasMessage("Withdraw would exceeds overdraft limit");
-        }
-
-        /**
-         * Vérifie que {@link NoOverdraft} rejette les retraits null.
-         * <p>
-         * Le retrait de null lève une DomainException {@link DomainException}.
-         * </p>
-         *
-         */
-        @Test
-        @DisplayName("refuse null withdraw")
-        void rejects_null_withdraw() {
-            assertThatThrownBy(() -> policy.validateWithdraw(Money.of("10"), null))
-                    .isInstanceOf(DomainException.class)
-                    .hasMessage("Withdraw cannot be null");
-        }
-
-        /**
-         * Vérifie que {@link NoOverdraft} rejette les balance null.
-         * <p>
-         * La balance null lève une DomainException {@link DomainException}.
-         * </p>
-         *
-         */
-        @Test
-        @DisplayName("refuse null balance")
-        void rejects_null_balance() {
-            assertThatThrownBy(() -> policy.validateWithdraw(null, Money.of("10")))
-                    .isInstanceOf(DomainException.class)
-                    .hasMessage("Balance cannot be null");
+                    .isInstanceOf(InsufficientFundsException.class)
+                    .hasMessage("Insufficient funds: amount Money[value=" + amount + "], balance Money[value=10.00], overdraft Money[value=0.00]");
         }
     }
 
     /**
      * Groupe de tests pour la stratégie {@link FixedOverdraft},
-     * qui impose un plafond de retrait dans la limite du découvert autorisé.
+     * qui impose un découvert autorisé (balance finale doit rester ≥ limite).
      */
     @Nested
     @DisplayName("FixedOverdraft")
@@ -133,11 +81,10 @@ public class OverDraftPolicyTest {
 
         /**
          * Vérifie que {@link FixedOverdraft} autorise les retraits si la balance résultante
-         * est supérieure ou égale au découvert autorisé, tant qu’ils sont strictement positifs.
-         *
+         * est ≥ au découvert autorisé (et que le retrait est strictement positif).
          */
         @Test
-        @DisplayName("autorise balance finale >= découvert et withdraw > 0")
+        @DisplayName("autorise balance finale ≥ découvert et withdraw > 0")
         void allows_up_to_overdraft_inclusive() {
             Money m1 = Money.of("0.01");
             Money balance = Money.of("-10");
@@ -147,67 +94,18 @@ public class OverDraftPolicyTest {
         }
 
         /**
-         * Vérifie que {@link FixedOverdraft} rejette tout retraits dont le résultat impliquerait
-         * une balance inférieure au découvert autorisé.
-         * <p>
-         * Une {@link DomainException} doit être levée avec un message explicite.
-         * </p>
+         * Vérifie que {@link FixedOverdraft} rejette les retraits menant à une balance
+         * inférieure au découvert autorisé.
          *
-         * @param withDrawValue montant du dépôt supérieur au plafond
+         * @param withDrawValue montant du retrait test
          */
         @ParameterizedTest
         @ValueSource(strings = {"100.01", "150.00", "10043423.1132"})
         @DisplayName("refuse balance_finale < découvert")
         void rejects_above_overdraft(String withDrawValue) {
             assertThatThrownBy(() -> policy.validateWithdraw(BALANCE, Money.of(withDrawValue)))
-                    .isInstanceOf(DomainException.class)
-                    .hasMessage("Withdraw would exceeds overdraft limit");
-        }
-
-        /**
-         * Vérifie que {@link FixedOverdraft} rejette les retraits inférieurs ou égaux à 0.00.
-         * Indépendamment de la valeur du découvert autorisé.
-         * <p>
-         * Le retrait de 0 ou de valeur négative doit lever une {@link DomainException}.
-         * </p>
-         *
-         * @param withdrawValue montant invalide du dépôt
-         */
-        @ParameterizedTest
-        @ValueSource(strings = {"0.00", "-0.01"})
-        @DisplayName("refuse zéro/négatif")
-        void rejects_zero_or_negative(String withdrawValue) {
-            assertThatThrownBy(() -> policy.validateWithdraw(BALANCE, Money.of(withdrawValue)))
-                    .isInstanceOf(DomainException.class)
-                    .hasMessage("Withdraw amount must be greater than 0.00");
-        }
-
-        /**
-         * Vérifie que {@link FixedOverdraft} rejette les dépôts null.
-         * <p>
-         * Le dépôt de null lève une DomainException {@link DomainException}.
-         * </p>
-         */
-        @Test
-        @DisplayName("refuse null withdraw")
-        void rejects_null_withdraw() {
-            assertThatThrownBy(() -> policy.validateWithdraw(Money.of("100.00"), null))
-                    .isInstanceOf(DomainException.class)
-                    .hasMessage("Withdraw cannot be null");
-        }
-
-        /**
-         * Vérifie que {@link FixedOverdraft} rejette les balance null.
-         * <p>
-         * Une balance null lève une DomainException {@link DomainException}.
-         * </p>
-         */
-        @Test
-        @DisplayName("refuse null balance")
-        void rejects_null_balance() {
-            assertThatThrownBy(() -> policy.validateWithdraw(null, Money.of("100.00")))
-                    .isInstanceOf(DomainException.class)
-                    .hasMessage("Balance cannot be null");
+                    .isInstanceOf(InsufficientFundsException.class)
+                    .hasMessage("Insufficient funds: amount Money[value=" + Money.of(withDrawValue).value() + "], balance Money[value=0.00], overdraft Money[value=-100.00]");
         }
     }
 }

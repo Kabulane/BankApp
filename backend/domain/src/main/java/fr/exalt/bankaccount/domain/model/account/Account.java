@@ -7,7 +7,9 @@ import fr.exalt.bankaccount.domain.model.account.rules.ceilingpolicy.NoCeiling;
 import fr.exalt.bankaccount.domain.model.account.rules.overdraftpolicy.FixedOverdraft;
 import fr.exalt.bankaccount.domain.model.account.rules.overdraftpolicy.NoOverdraft;
 import fr.exalt.bankaccount.domain.model.account.rules.overdraftpolicy.OverdraftPolicy;
+import fr.exalt.bankaccount.domain.model.exception.BusinessRuleViolationException;
 import fr.exalt.bankaccount.domain.model.exception.DomainException;
+import fr.exalt.bankaccount.domain.model.exception.InvariantViolationException;
 import fr.exalt.bankaccount.domain.model.money.Money;
 
 import java.time.Clock;
@@ -57,6 +59,11 @@ public class Account {
                     CeilingPolicy ceilingPolicy,
                     List<Operation> initialOperations) {
 
+        if (id == null) throw new InvariantViolationException("AccountId cannot be null");
+        if (type == null) throw new InvariantViolationException("Account type cannot be null");
+        if (overdraftPolicy == null) throw new InvariantViolationException("Overdraft policy is required");
+        if (ceilingPolicy == null) throw new InvariantViolationException("Ceiling policy is required");
+
         this.id = Objects.requireNonNull(id);
         this.type = Objects.requireNonNull(type);
         this.clock = (clock == null) ? Clock.systemUTC() : clock;
@@ -81,7 +88,7 @@ public class Account {
     public static Account openCurrent(Money authorizedOverdaft, Clock clock) {
         // Paramétrage des policies
         if (authorizedOverdaft == null || authorizedOverdaft.isGreaterThan(Money.zero())) {
-            throw new DomainException("Overdraft limit must be zero or negative");
+            throw new BusinessRuleViolationException("Overdraft limit must be zero or negative");
         }
 
         return new Account(
@@ -92,7 +99,7 @@ public class Account {
     public static Account openSavings(Money ceiling, Clock clock) {
 
         if (ceiling == null || ceiling.isLessThanOrEqual(Money.zero())) {
-            throw new DomainException("Ceiling must be strictly positive.");
+            throw new BusinessRuleViolationException("Ceiling must be strictly positive");
         }
 
         return new Account(
@@ -109,9 +116,12 @@ public class Account {
                                     Money overdraftOrNull,   // CURRENT: <= 0 ; SAVINGS: null
                                     Money ceilingOrNull,     // SAVINGS: > 0 ; CURRENT: null
                                     Clock clock) {
+        if (id == null) throw new InvariantViolationException("AccountId cannot be null");
+        if (type == null) throw new InvariantViolationException("Account type cannot be null");
+
         if (type == Type.CURRENT) {
             if (overdraftOrNull == null || overdraftOrNull.isGreaterThan(Money.zero())) {
-                throw new DomainException("Overdraft limit must be zero or negative.");
+                throw new InvariantViolationException("Persisted overdraft must be zero or negative for CURRENT");
             }
             return new Account(
                     id, type, clock, currentBalance,
@@ -121,7 +131,7 @@ public class Account {
             );
         } else {
             if (ceilingOrNull == null || ceilingOrNull.isLessThanOrEqual(Money.zero())) {
-                throw new DomainException("Ceiling must be strictly positive.");
+                throw new InvariantViolationException("Persisted ceiling must be strictly positive for SAVINGS");
             }
             return new Account(
                     id, type, clock, currentBalance,
@@ -136,7 +146,7 @@ public class Account {
 
     public void deposit(Money amount) {
         if (amount == null || amount.isLessThanOrEqual(Money.zero())) {
-            throw new DomainException("Deposit amount must be strictly positive");
+            throw new BusinessRuleViolationException("Deposit amount must be strictly positive");
         }
         ceilingPolicy.validateDeposit(this.balance, amount);
 
@@ -147,7 +157,7 @@ public class Account {
 
     public void withdraw(Money amount) {
         if (amount == null || amount.isLessThanOrEqual(Money.zero())) {
-            throw new DomainException("Withdraw amount must be strictly positive");
+            throw new BusinessRuleViolationException("Withdraw amount must be strictly positive");
         }
         overdraftPolicy.validateWithdraw(this.balance, amount);
 
@@ -159,10 +169,10 @@ public class Account {
     /** CURRENT uniquement. */
     public void adjustOverdraftLimit(Money newOverdraftLimit) {
         if (this.type != Type.CURRENT) {
-            throw new DomainException("Only CURRENT accounts can adjust overdraft.");
+            throw new BusinessRuleViolationException("Only CURRENT accounts can adjust overdraft");
         }
         if (newOverdraftLimit == null || newOverdraftLimit.isGreaterThan(Money.zero())) {
-            throw new DomainException("Overdraft limit must be zero or negative.");
+            throw new BusinessRuleViolationException("Overdraft limit must be zero or negative");
         }
         // recrée la policy
         this.overdraftPolicy = new FixedOverdraft(newOverdraftLimit);
@@ -171,10 +181,10 @@ public class Account {
     /** SAVINGS uniquement. */
     public void adjustCeiling(Money newCeiling) {
         if (this.type != Type.SAVINGS) {
-            throw new DomainException("Only SAVINGS accounts can adjust ceiling.");
+            throw new BusinessRuleViolationException("Only SAVINGS accounts can adjust ceiling");
         }
         if (newCeiling == null || newCeiling.isLessThanOrEqual(Money.zero())) {
-            throw new DomainException("Ceiling must be strictly positive.");
+            throw new BusinessRuleViolationException("Ceiling must be strictly positive");
         }
         // recrée la policy
         this.ceilingPolicy = new FixedCeiling(newCeiling);
@@ -183,7 +193,9 @@ public class Account {
     // ---------- Historique : ordre inverse chrono ----------
 
     public void addOperationToOperationList(Operation operation) {
-        Objects.requireNonNull(operation);
+        if (operation == null) {
+            throw new InvariantViolationException("Operation cannot be null");
+        }
         this.operations.add(operation);
         this.operations.sort(Comparator.comparing(Operation::at).reversed());
     }
