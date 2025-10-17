@@ -2,7 +2,6 @@ package fr.exalt.bankaccount.domain.model.account.rules.ceilingpolicy;
 
 import fr.exalt.bankaccount.domain.model.exception.CeilingExceededException;
 import fr.exalt.bankaccount.domain.model.money.Money;
-import fr.exalt.bankaccount.domain.model.exception.DomainException;
 
 import java.util.Objects;
 
@@ -18,8 +17,6 @@ public class FixedCeiling implements CeilingPolicy {
         this.ceiling = Objects.requireNonNull(ceiling, "ceiling");
     }
 
-    // TODO: déléguer la validation de null et montants négatifs à Account
-    // pour respecter une séparation plus claire des invariants métier
     @Override
     public void validateDeposit(Money balance, Money deposit) {
         Objects.requireNonNull(balance, "balance");

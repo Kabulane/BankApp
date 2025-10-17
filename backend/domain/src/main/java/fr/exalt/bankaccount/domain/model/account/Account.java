@@ -8,7 +8,6 @@ import fr.exalt.bankaccount.domain.model.account.rules.overdraftpolicy.FixedOver
 import fr.exalt.bankaccount.domain.model.account.rules.overdraftpolicy.NoOverdraft;
 import fr.exalt.bankaccount.domain.model.account.rules.overdraftpolicy.OverdraftPolicy;
 import fr.exalt.bankaccount.domain.model.exception.BusinessRuleViolationException;
-import fr.exalt.bankaccount.domain.model.exception.DomainException;
 import fr.exalt.bankaccount.domain.model.exception.InvariantViolationException;
 import fr.exalt.bankaccount.domain.model.money.Money;
 

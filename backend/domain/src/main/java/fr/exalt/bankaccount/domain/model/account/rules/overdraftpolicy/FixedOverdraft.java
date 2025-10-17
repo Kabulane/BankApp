@@ -1,6 +1,5 @@
 package fr.exalt.bankaccount.domain.model.account.rules.overdraftpolicy;
 
-import fr.exalt.bankaccount.domain.model.exception.DomainException;
 import fr.exalt.bankaccount.domain.model.exception.InsufficientFundsException;
 import fr.exalt.bankaccount.domain.model.money.Money;
 
