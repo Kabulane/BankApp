@@ -74,6 +74,6 @@ public class DepositServiceTest {
 
         DepositCommand cmd = new DepositCommand(unknownId, Money.of("350"));
 
-        assertThatThrownBy(() -> service.handle(cmd)).isInstanceOf(AccountNotFoundException.class);
+        assertThatThrownBy(() -> service.handle(cmd)).isInstanceOf(AccountNotFoundApplicationException.class);
     }
 }

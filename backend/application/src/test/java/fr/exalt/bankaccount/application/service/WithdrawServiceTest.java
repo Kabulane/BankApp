@@ -86,6 +86,6 @@ public class WithdrawServiceTest {
 
         WithdrawCommand cmd = new WithdrawCommand(unknownId, Money.of("350"));
 
-        assertThatThrownBy(() -> service.handle(cmd)).isInstanceOf(AccountNotFoundException.class);
+        assertThatThrownBy(() -> service.handle(cmd)).isInstanceOf(AccountNotFoundApplicationException.class);
     }
 }

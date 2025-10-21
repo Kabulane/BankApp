@@ -18,7 +18,7 @@ public class DepositService {
 
         Account account = repository.findById(cmd.accountId());
         if (account == null) {
-            throw new AccountNotFoundException("Account %s not found".formatted(cmd.accountId()));
+            throw new AccountNotFoundApplicationException("Account %s not found".formatted(cmd.accountId()));
         }
 
         // On délègue la règle métier au domaine (montant > 0 etc...)
