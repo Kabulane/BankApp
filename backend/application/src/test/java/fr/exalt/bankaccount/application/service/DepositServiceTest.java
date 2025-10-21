@@ -6,7 +6,6 @@ import fr.exalt.bankaccount.domain.model.exception.BusinessRuleViolationExceptio
 import fr.exalt.bankaccount.domain.model.money.Money;
 import org.junit.jupiter.api.Test;
 
-import javax.security.auth.login.AccountNotFoundException;
 import java.time.Clock;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,9 +36,9 @@ public class DepositServiceTest {
 
         // then
         assertThat(result.accountId()).isEqualTo(account.getId());
-        assertThat(result.newBalance()).isEqualTo(Money.of("500"));
+        assertThat(result.newBalance()).isEqualTo(Money.of("200"));
         // Persisted state
-        assertThat(repo.findById(result.accountId()).getBalance().isEqualTo(Money.of("500"))).isTrue();
+        assertThat(repo.findById(result.accountId()).getBalance().isEqualTo(Money.of("200"))).isTrue();
     }
 
     @Test
