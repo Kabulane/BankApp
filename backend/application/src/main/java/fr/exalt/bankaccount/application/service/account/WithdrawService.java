@@ -4,15 +4,19 @@ import fr.exalt.bankaccount.application.exception.AccountNotFoundApplicationExce
 import fr.exalt.bankaccount.application.port.out.AccountRepository;
 import fr.exalt.bankaccount.application.dto.account.WithdrawCommand;
 import fr.exalt.bankaccount.application.dto.account.WithdrawResult;
+import fr.exalt.bankaccount.application.port.out.OperationRepository;
 import fr.exalt.bankaccount.domain.model.account.Account;
+import fr.exalt.bankaccount.domain.model.account.operation.Operation;
 
 import java.util.Objects;
 
 public class WithdrawService {
-    private final AccountRepository repository;
+    private final AccountRepository accountRepository;
+    private final OperationRepository operationRepository;
 
-    public WithdrawService(AccountRepository repository) {
-        this.repository = repository;
+    public WithdrawService(AccountRepository accountRepository, OperationRepository operationRepository) {
+        this.accountRepository = accountRepository;
+        this.operationRepository = operationRepository;
     }
 
     public WithdrawResult handle(WithdrawCommand cmd) {
@@ -20,15 +24,16 @@ public class WithdrawService {
         Objects.requireNonNull(cmd.accountId(), "AccountId must no be null");
         Objects.requireNonNull(cmd.withdraw(), "Deposit must not be null");
 
-        Account account = repository.findById(cmd.accountId());
+        Account account = accountRepository.findById(cmd.accountId());
         if (account == null) {
             throw new AccountNotFoundApplicationException("Account %s not found".formatted(cmd.accountId()));
         }
 
         // On délègue la règle métier au domaine (montant > 0 etc...)
-        account.withdraw(cmd.withdraw());
-        repository.save(account);
+        Operation operation = account.withdraw(cmd.withdraw());
+        accountRepository.save(account);
+        operationRepository.save(operation);
 
-        return new WithdrawResult(account.getId(), account.getBalance());
+        return new WithdrawResult(account.getId(), account.getBalance(), operation);
     }
 }

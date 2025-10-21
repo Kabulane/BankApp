@@ -4,15 +4,19 @@ import fr.exalt.bankaccount.application.exception.AccountNotFoundApplicationExce
 import fr.exalt.bankaccount.application.port.out.AccountRepository;
 import fr.exalt.bankaccount.application.dto.account.DepositCommand;
 import fr.exalt.bankaccount.application.dto.account.DepositResult;
+import fr.exalt.bankaccount.application.port.out.OperationRepository;
 import fr.exalt.bankaccount.domain.model.account.Account;
+import fr.exalt.bankaccount.domain.model.account.operation.Operation;
 
 import java.util.Objects;
 
 public class DepositService {
-    private final AccountRepository repository;
+    private final AccountRepository accountRepository;
+    private final OperationRepository operationRepository;
 
-    public DepositService(AccountRepository repository) {
-        this.repository = repository;
+    public DepositService(AccountRepository accountRepository, OperationRepository operationRepository) {
+        this.accountRepository = accountRepository;
+        this.operationRepository = operationRepository;
     }
 
     public DepositResult handle(DepositCommand cmd) {
@@ -20,15 +24,16 @@ public class DepositService {
         Objects.requireNonNull(cmd.accountId(), "AccountId must no be null");
         Objects.requireNonNull(cmd.deposit(), "Deposit must not be null");
 
-        Account account = repository.findById(cmd.accountId());
+        Account account = accountRepository.findById(cmd.accountId());
         if (account == null) {
             throw new AccountNotFoundApplicationException("Account %s not found".formatted(cmd.accountId()));
         }
 
         // On délègue la règle métier au domaine (montant > 0 etc...)
-        account.deposit(cmd.deposit());
-        repository.save(account);
+        Operation operation = account.deposit(cmd.deposit());
+        accountRepository.save(account);
+        operationRepository.save(operation);
 
-        return new DepositResult(account.getId(), account.getBalance());
+        return new DepositResult(account.getId(), account.getBalance(), operation);
     }
 }
