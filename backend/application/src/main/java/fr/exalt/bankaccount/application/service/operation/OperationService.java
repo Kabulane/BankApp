@@ -5,7 +5,10 @@ import fr.exalt.bankaccount.domain.model.account.AccountId;
 import fr.exalt.bankaccount.domain.model.account.operation.Operation;
 
 import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 
 public class OperationService {
     private final OperationRepository operationRepository;
@@ -16,7 +19,12 @@ public class OperationService {
         this.clock = clock;
     }
 
-    public List<Operation> getMonthlyOperations(AccountId accountA) {
-        return null;
+    public List<Operation> getMonthlyOperations(AccountId accountId) {
+        Objects.requireNonNull(accountId);
+
+        Instant now = Instant.now(clock);
+        Instant fromInclusive = now.minus(30, ChronoUnit.DAYS);
+
+        return operationRepository.findByAccountIdBetween(accountId, fromInclusive, now);
     }
 }

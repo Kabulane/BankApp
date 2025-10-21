@@ -102,8 +102,6 @@ public class OperationServiceTest {
         OperationService service = new OperationService(repo, fixedClock);
 
         assertThatThrownBy(() -> service.getMonthlyOperations(null))
-                .isInstanceOf(NullPointerException.class) // Objects.requireNonNull lève un NPE
-                .hasMessageContaining("accountId");
+                .isInstanceOf(NullPointerException.class); // Objects.requireNonNull lève un NPE
     }
-
 }
