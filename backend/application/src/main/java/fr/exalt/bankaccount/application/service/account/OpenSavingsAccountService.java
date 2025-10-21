@@ -1,5 +1,8 @@
-package fr.exalt.bankaccount.application.service;
+package fr.exalt.bankaccount.application.service.account;
 
+import fr.exalt.bankaccount.application.port.out.AccountRepository;
+import fr.exalt.bankaccount.application.dto.account.OpenSavingsAccountCommand;
+import fr.exalt.bankaccount.application.dto.account.OpenSavingsAccountResult;
 import fr.exalt.bankaccount.domain.model.account.Account;
 
 import java.time.Clock;

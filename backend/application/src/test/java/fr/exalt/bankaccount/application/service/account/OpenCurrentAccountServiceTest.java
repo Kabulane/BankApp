@@ -1,5 +1,8 @@
-package fr.exalt.bankaccount.application.service;
+package fr.exalt.bankaccount.application.service.account;
 
+import fr.exalt.bankaccount.application.dto.account.OpenCurrentAccountCommand;
+import fr.exalt.bankaccount.application.dto.account.OpenCurrentAccountResult;
+import fr.exalt.bankaccount.application.port.out.AccountRepository;
 import fr.exalt.bankaccount.domain.model.account.Account;
 import fr.exalt.bankaccount.domain.model.account.AccountId;
 import fr.exalt.bankaccount.domain.model.money.Money;
@@ -10,7 +13,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class OpenCurrentAccountServiceTest {
 
     // Stub simple pour capturer ce que le service sauvegarde
-    static final class InMemoryAccountRepository implements  AccountRepository {
+    static final class InMemoryAccountRepository implements AccountRepository {
         Account saved;
         @Override public Account save(Account account) {this.saved = account; return account;}
         @Override public Account findById(AccountId id) {return null;}
