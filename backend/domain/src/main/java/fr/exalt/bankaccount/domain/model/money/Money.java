@@ -44,4 +44,7 @@ public record Money(BigDecimal value) {
     }
 
 
+    public boolean isEqualTo(Money other) {
+        return this.value().equals(other.value());
+    }
 }
