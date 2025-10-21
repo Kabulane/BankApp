@@ -17,10 +17,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.List;
 
-import static fr.exalt.bankaccount.domain.model.account.operation.Operation.Type.DEPOSIT;
-import static fr.exalt.bankaccount.domain.model.account.operation.Operation.Type.WITHDRAWAL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -35,13 +32,12 @@ class AccountTest {
     // -------------------------
 
     @Test
-    void should_open_current_account_with_zero_balance_and_no_operations_and_correct_policies() {
+    void should_open_current_account_with_zero_balance__correct_policies() {
         Account acc = Account.openCurrent(Money.of("0"), fixedClock);
 
         Assertions.assertNotNull(acc);
         assertThat(acc.getType()).isEqualTo(Account.Type.CURRENT);
         assertThat(acc.getBalance()).isEqualTo(Money.zero());
-        assertThat(acc.getOperations()).isEmpty();
 
         // ✅ Vérifie les TYPES concrets de policies (via extraction réflexive AssertJ)
         assertThat(acc).extracting("ceilingPolicy").isInstanceOf(NoCeiling.class);
@@ -49,13 +45,12 @@ class AccountTest {
     }
 
     @Test
-    void should_open_savings_account_with_zero_balance_and_no_operations_and_correct_policies() {
+    void should_open_savings_account_with_zero_balance_and_correct_policies() {
         Account acc = Account.openSavings(Money.of("10000"), fixedClock);
 
         Assertions.assertNotNull(acc);
         assertThat(acc.getType()).isEqualTo(Account.Type.SAVINGS);
         assertThat(acc.getBalance()).isEqualTo(Money.zero());
-        assertThat(acc.getOperations()).isEmpty();
 
         // ✅ Vérifie les TYPES concrets de policies
         assertThat(acc).extracting("ceilingPolicy").isInstanceOf(FixedCeiling.class);
@@ -90,16 +85,10 @@ class AccountTest {
 
     @Test
     void should_rehydrate_existing_current_account_with_correct_policies() {
-        List<Operation> ops = List.of(
-                Operation.of(accountId, Money.of("100"), DEPOSIT),
-                Operation.of(accountId, Money.of("40"), WITHDRAWAL)
-        );
-
         Account acc = Account.rehydrate(
                 accountId,
                 Account.Type.CURRENT,
                 Money.of("60"),     // snapshot déjà calculé (pas de replay)
-                ops,
                 Money.of("-200"),   // overdraft pour CURRENT
                 null,               // pas de plafond pour CURRENT
                 fixedClock
@@ -108,7 +97,6 @@ class AccountTest {
         Assertions.assertNotNull(acc);
         assertThat(acc.getType()).isEqualTo(Account.Type.CURRENT);
         assertThat(acc.getBalance()).isEqualTo(Money.of("60"));
-        assertThat(acc.getOperations()).hasSize(2);
         assertThat(acc.getOverdraft()).isEqualTo(Money.of("-200"));
 
         // ✅ Policies
@@ -118,16 +106,10 @@ class AccountTest {
 
     @Test
     void should_rehydrate_existing_savings_account_with_correct_policies() {
-        List<Operation> ops = List.of(
-                Operation.of(accountId, Money.of("500"), DEPOSIT),
-                Operation.of(accountId, Money.of("100"), WITHDRAWAL)
-        );
-
         Account acc = Account.rehydrate(
                 accountId,
                 Account.Type.SAVINGS,
                 Money.of("600"),     // snapshot déjà calculé
-                ops,
                 null,      // pas de découvert pour SAVINGS
                 Money.of("1000"),    // plafond pour SAVINGS
                 fixedClock
@@ -136,7 +118,6 @@ class AccountTest {
         Assertions.assertNotNull(acc);
         assertThat(acc.getType()).isEqualTo(Account.Type.SAVINGS);
         assertThat(acc.getBalance()).isEqualTo(Money.of("600"));
-        assertThat(acc.getOperations()).hasSize(2);
         assertThat(acc.getCeiling()).isEqualTo(Money.of("1000"));
 
         // ✅ Policies
@@ -149,17 +130,13 @@ class AccountTest {
     // -------------------------
 
     @Test
-    void current_account_deposit_should_increase_balance_and_record_operation() {
+    void current_account_deposit_should_increase_balance() {
         Account acc = Account.openCurrent(Money.of("0"), fixedClock);
 
         Assertions.assertNotNull(acc);
         acc.deposit(Money.of("250"));
 
         assertThat(acc.getBalance()).isEqualTo(Money.of("250"));
-        assertThat(acc.getOperations())
-                .hasSize(1)
-                .extracting(Operation::type)
-                .containsExactly(Operation.Type.DEPOSIT);
     }
 
     @Test
@@ -176,10 +153,6 @@ class AccountTest {
         assertThatThrownBy(() -> acc.withdraw(Money.of("1"))) // irait à -101
                 .isInstanceOf(InsufficientFundsException.class)
                 .hasMessage("Insufficient funds: amount Money[value=1.00], balance Money[value=-100.00], overdraft Money[value=-100.00]");
-
-        assertThat(acc.getOperations().stream().filter(
-                o -> o.type() == WITHDRAWAL).count()
-        ).isEqualTo(2);
     }
 
     // -------------------------
@@ -237,7 +210,6 @@ class AccountTest {
                 .isInstanceOf(BusinessRuleViolationException.class)
                 .hasMessage("Withdraw amount must be strictly positive");
 
-        assertThat(acc.getOperations()).isEmpty();
         assertThat(acc.getBalance()).isEqualTo(Money.zero());
     }
 
@@ -315,38 +287,5 @@ class AccountTest {
         assertThatThrownBy(() -> acc.adjustCeiling(Money.of("-1")))
                 .isInstanceOf(BusinessRuleViolationException.class)
                 .hasMessage("Ceiling must be strictly positive");
-    }
-
-    // -------------------------
-    // Ordre inverse chronologique des opérations (CURRENT & SAVINGS)
-    // -------------------------
-
-    @Test
-    @DisplayName("addOperationToOperationList (CURRENT) : stocke en ordre 'at' décroissant (plus récente d'abord)")
-    void add_operation_orders_reverse_chrono_on_current() {
-        Account acc = Account.openCurrent(Money.of("0"), fixedClock);
-
-        Instant t1 = Instant.parse("2024-01-01T10:00:00Z");
-        Instant t2 = Instant.parse("2024-01-01T11:00:00Z");
-        Instant t3 = Instant.parse("2024-01-01T12:00:00Z");
-
-        Operation op1 = new Operation(OperationId.newId(), accountId, Money.of("10"), DEPOSIT, t1, "oldest");
-        Operation op2 = new Operation(OperationId.newId(), accountId, Money.of("5"), WITHDRAWAL, t2, "middle");
-        Operation op3 = new Operation(OperationId.newId(), accountId, Money.of("7"), DEPOSIT, t3, "youngest");
-
-        Assertions.assertNotNull(acc);
-        // Ajout dans un ordre non trié
-        acc.addOperationToOperationList(op1);
-        acc.addOperationToOperationList(op3);
-        acc.addOperationToOperationList(op2);
-
-        // Vérifie ordre par 'at' décroissant : t3, t2, t1
-        assertThat(acc.getOperations())
-                .extracting(Operation::at)
-                .containsExactly(t3, t2, t1);
-
-        assertThat(acc.getOperations())
-                .extracting(Operation::type)
-                .containsExactly(DEPOSIT, WITHDRAWAL, DEPOSIT);
     }
 }

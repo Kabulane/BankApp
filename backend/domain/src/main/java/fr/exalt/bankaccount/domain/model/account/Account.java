@@ -44,9 +44,6 @@ public class Account {
     private CeilingPolicy ceilingPolicy;
     private OverdraftPolicy overdraftPolicy;
 
-    // Historique (stocké en ordre inverse chrono : plus récent d'abord)
-    private final List<Operation> operations;
-
     // --------------------------
     // Constructeur privé interne
     // --------------------------
@@ -55,8 +52,7 @@ public class Account {
                     Clock clock,
                     Money balance,
                     OverdraftPolicy overdraftPolicy,
-                    CeilingPolicy ceilingPolicy,
-                    List<Operation> initialOperations) {
+                    CeilingPolicy ceilingPolicy) {
 
         if (id == null) throw new InvariantViolationException("AccountId cannot be null");
         if (type == null) throw new InvariantViolationException("Account type cannot be null");
@@ -71,13 +67,6 @@ public class Account {
 
         this.overdraftPolicy = Objects.requireNonNull(overdraftPolicy);
         this.ceilingPolicy = Objects.requireNonNull(ceilingPolicy);
-
-        // tri inverse chrono
-        this.operations = new ArrayList<>();
-        if (initialOperations != null && !initialOperations.isEmpty()) {
-            this.operations.addAll(initialOperations);
-            this.operations.sort(Comparator.comparing(Operation::at).reversed());
-        }
     }
 
     // ---------------------
@@ -92,7 +81,7 @@ public class Account {
 
         return new Account(
                 AccountId.newId(), Type.CURRENT, clock,  Money.zero(),
-                new FixedOverdraft(authorizedOverdaft), new NoCeiling(), null);
+                new FixedOverdraft(authorizedOverdaft), new NoCeiling());
 
     }
     public static Account openSavings(Money ceiling, Clock clock) {
@@ -103,7 +92,7 @@ public class Account {
 
         return new Account(
                 AccountId.newId(), Type.SAVINGS, clock,  Money.zero(),
-                new NoOverdraft(), new FixedCeiling(ceiling), null);
+                new NoOverdraft(), new FixedCeiling(ceiling));
     }
 
     // ---------- Réhydratation ----------
@@ -111,7 +100,6 @@ public class Account {
     public static Account rehydrate(AccountId id,
                                     Type type,
                                     Money currentBalance,
-                                    List<Operation> pastOperations,
                                     Money overdraftOrNull,   // CURRENT: <= 0 ; SAVINGS: null
                                     Money ceilingOrNull,     // SAVINGS: > 0 ; CURRENT: null
                                     Clock clock) {
@@ -125,8 +113,7 @@ public class Account {
             return new Account(
                     id, type, clock, currentBalance,
                     new FixedOverdraft(overdraftOrNull),
-                    new NoCeiling(),
-                    pastOperations
+                    new NoCeiling()
             );
         } else {
             if (ceilingOrNull == null || ceilingOrNull.isLessThanOrEqual(Money.zero())) {
@@ -135,15 +122,14 @@ public class Account {
             return new Account(
                     id, type, clock, currentBalance,
                     new NoOverdraft(),
-                    new FixedCeiling(ceilingOrNull),
-                    pastOperations
+                    new FixedCeiling(ceilingOrNull)
             );
         }
     }
 
     // ---------- Commandes ----------
 
-    public void deposit(Money amount) {
+    public Operation deposit(Money amount) {
         if (amount == null || amount.isLessThanOrEqual(Money.zero())) {
             throw new BusinessRuleViolationException("Deposit amount must be strictly positive");
         }
@@ -151,10 +137,10 @@ public class Account {
 
         Operation op = Operation.of(this.id, amount, Operation.Type.DEPOSIT);
         this.balance = op.applyTo(this.balance);
-        addOperationToOperationList(op);
+        return op;
     }
 
-    public void withdraw(Money amount) {
+    public Operation withdraw(Money amount) {
         if (amount == null || amount.isLessThanOrEqual(Money.zero())) {
             throw new BusinessRuleViolationException("Withdraw amount must be strictly positive");
         }
@@ -162,7 +148,7 @@ public class Account {
 
         Operation op = Operation.of(this.id, amount, Operation.Type.WITHDRAWAL);
         this.balance = op.applyTo(this.balance);
-        addOperationToOperationList(op);
+        return op;
     }
 
     /** CURRENT uniquement. */
@@ -189,22 +175,11 @@ public class Account {
         this.ceilingPolicy = new FixedCeiling(newCeiling);
     }
 
-    // ---------- Historique : ordre inverse chrono ----------
-
-    public void addOperationToOperationList(Operation operation) {
-        if (operation == null) {
-            throw new InvariantViolationException("Operation cannot be null");
-        }
-        this.operations.add(operation);
-        this.operations.sort(Comparator.comparing(Operation::at).reversed());
-    }
-
     // ---------- Getters (API lue dans les tests) ----------
 
     public Type getType() { return type; }
     public Money getBalance() { return balance; }
     public Money balance() { return balance; }
-    public List<Operation> getOperations() { return Collections.unmodifiableList(operations); }
     public AccountId getId() { return id; }
     public Clock getClock() { return clock; }
 
