@@ -4,12 +4,17 @@ import fr.exalt.bankaccount.application.exception.AccountNotFoundApplicationExce
 import fr.exalt.bankaccount.domain.model.account.Account;
 import fr.exalt.bankaccount.domain.model.account.AccountId;
 import fr.exalt.bankaccount.domain.model.money.Money;
+import fr.exalt.bankaccount.infrastructure.TestJpaConfig;
 import fr.exalt.bankaccount.infrastructure.jpa.adapter.AccountRepositoryAdapter;
+import fr.exalt.bankaccount.infrastructure.jpa.entity.AccountEntity;
+import fr.exalt.bankaccount.infrastructure.jpa.mapper.AccountMapper;
+import fr.exalt.bankaccount.infrastructure.jpa.spring.AccountJpaRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Clock;
@@ -17,13 +22,20 @@ import java.time.Clock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@SpringBootTest
+@DataJpaTest
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
+@Import({
+        AccountRepositoryAdapter.class,
+        AccountEntity.class,
+        AccountMapper.class,
+        TestJpaConfig.class
+})
 public class AccountRepositoryAdapterIT {
 
     @Autowired
     AccountRepositoryAdapter adapter;
+    private final Clock clock = Clock.systemUTC();
 
     @Test
     @DisplayName("Save + findById (Current) + persiste balance, overdraft et rehydrate correctement")

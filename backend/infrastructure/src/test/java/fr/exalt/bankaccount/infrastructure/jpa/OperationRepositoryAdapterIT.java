@@ -3,16 +3,18 @@ package fr.exalt.bankaccount.infrastructure.jpa;
 import fr.exalt.bankaccount.domain.model.account.AccountId;
 import fr.exalt.bankaccount.domain.model.account.operation.Operation;
 import fr.exalt.bankaccount.domain.model.account.operation.OperationId;
-import fr.exalt.bankaccount.infrastructure.TestBootConfig;
+import fr.exalt.bankaccount.infrastructure.TestJpaConfig;
 import fr.exalt.bankaccount.infrastructure.jpa.adapter.OperationRepositoryAdapter;
 import fr.exalt.bankaccount.infrastructure.jpa.entity.OperationEntity;
+import fr.exalt.bankaccount.infrastructure.jpa.mapper.OperationMapper;
 import fr.exalt.bankaccount.infrastructure.jpa.spring.OperationJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
@@ -23,9 +25,15 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(classes = TestBootConfig.class)
+@DataJpaTest
 @AutoConfigureTestDatabase // force une DB embarquée (H2) si dispo
 @ActiveProfiles("test")
+@Import({
+        OperationRepositoryAdapter.class,
+        OperationEntity.class,
+        OperationMapper.class,
+        TestJpaConfig.class
+})
 public class OperationRepositoryAdapterIT {
 
     @Autowired
