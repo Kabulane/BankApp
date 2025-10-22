@@ -1,0 +1,17 @@
+package fr.exalt.bankaccount.infrastructure.rest;
+
+import fr.exalt.bankaccount.application.exception.AccountNotFoundApplicationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+@RestControllerAdvice
+public class RestExceptionHandler {
+
+    @ExceptionHandler(AccountNotFoundApplicationException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleAccountNotFound(AccountNotFoundApplicationException ex) {
+        return ex.getMessage();
+    }
+}
