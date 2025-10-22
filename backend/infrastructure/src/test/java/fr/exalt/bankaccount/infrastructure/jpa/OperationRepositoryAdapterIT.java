@@ -3,17 +3,19 @@ package fr.exalt.bankaccount.infrastructure.jpa;
 import fr.exalt.bankaccount.domain.model.account.AccountId;
 import fr.exalt.bankaccount.domain.model.account.operation.Operation;
 import fr.exalt.bankaccount.domain.model.account.operation.OperationId;
+import fr.exalt.bankaccount.infrastructure.TestBootConfig;
 import fr.exalt.bankaccount.infrastructure.jpa.adapter.OperationRepositoryAdapter;
 import fr.exalt.bankaccount.infrastructure.jpa.entity.OperationEntity;
-import fr.exalt.bankaccount.infrastructure.TestJpaConfig;
 import fr.exalt.bankaccount.infrastructure.jpa.spring.OperationJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -21,8 +23,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@Import({ TestJpaConfig.class, OperationRepositoryAdapter.class})
+@SpringBootTest(classes = TestBootConfig.class)
+@AutoConfigureTestDatabase // force une DB embarquée (H2) si dispo
+@ActiveProfiles("test")
 public class OperationRepositoryAdapterIT {
 
     @Autowired
@@ -41,24 +44,24 @@ public class OperationRepositoryAdapterIT {
 
         // 31 jours → hors fenêtre
         jpa.save(OperationEntity.create(
-                OperationId.newId().value(), accountA.value(), 10_00L, "DEPOSIT",
+                OperationId.newId().value(), accountA.value(), new BigDecimal(10), "DEPOSIT",
                 now.minus(31, ChronoUnit.DAYS), "old"));
 
         // 5j, 1j, 10j → Tri attendu DESC
         jpa.save(OperationEntity.create(
-                OperationId.newId().value(), accountA.value(), 10_00L, "DEPOSIT",
+                OperationId.newId().value(), accountA.value(), new BigDecimal(10), "DEPOSIT",
                 now.minus(5, ChronoUnit.DAYS), "five"));
         jpa.save(OperationEntity.create(
-                OperationId.newId().value(), accountA.value(), 10_00L, "WITHDRAW",
+                OperationId.newId().value(), accountA.value(), new BigDecimal(10), "WITHDRAWAL",
                 now.minus(1, ChronoUnit.DAYS), "one"));
         jpa.save(OperationEntity.create(
-                OperationId.newId().value(), accountA.value(), 10_00L, "DEPOSIT",
+                OperationId.newId().value(), accountA.value(), new BigDecimal(10), "DEPOSIT",
                 now.minus(10, ChronoUnit.DAYS), "ten"));
 
         // Bruit autre compte dans la fenêtre
         jpa.save(OperationEntity.create(
-                OperationId.newId().value(), accountB.value(), 10_00L, "DEPOSIT",
-                now.minus(12, ChronoUnit.DAYS), "old"));
+                OperationId.newId().value(), accountB.value(), new BigDecimal(10), "DEPOSIT",
+                now.minus(12, ChronoUnit.DAYS), "other"));
     }
 
     @Test
