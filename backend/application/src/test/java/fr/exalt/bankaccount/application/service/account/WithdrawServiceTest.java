@@ -1,7 +1,7 @@
 package fr.exalt.bankaccount.application.service.account;
 
-import fr.exalt.bankaccount.application.dto.account.WithdrawCommand;
-import fr.exalt.bankaccount.application.dto.account.WithdrawResult;
+import fr.exalt.bankaccount.application.dto.account.operation.WithdrawCommand;
+import fr.exalt.bankaccount.application.dto.account.operation.WithdrawResult;
 import fr.exalt.bankaccount.application.exception.AccountNotFoundApplicationException;
 import fr.exalt.bankaccount.application.port.out.AccountRepository;
 import fr.exalt.bankaccount.application.port.out.OperationRepository;
@@ -9,7 +9,6 @@ import fr.exalt.bankaccount.domain.model.account.Account;
 import fr.exalt.bankaccount.domain.model.account.AccountId;
 import fr.exalt.bankaccount.domain.model.account.operation.Operation;
 import fr.exalt.bankaccount.domain.model.exception.BusinessRuleViolationException;
-import fr.exalt.bankaccount.domain.model.exception.CeilingExceededException;
 import fr.exalt.bankaccount.domain.model.exception.InsufficientFundsException;
 import fr.exalt.bankaccount.domain.model.money.Money;
 import org.junit.jupiter.api.Test;

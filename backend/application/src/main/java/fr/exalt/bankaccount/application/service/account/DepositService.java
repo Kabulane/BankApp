@@ -2,8 +2,8 @@ package fr.exalt.bankaccount.application.service.account;
 
 import fr.exalt.bankaccount.application.exception.AccountNotFoundApplicationException;
 import fr.exalt.bankaccount.application.port.out.AccountRepository;
-import fr.exalt.bankaccount.application.dto.account.DepositCommand;
-import fr.exalt.bankaccount.application.dto.account.DepositResult;
+import fr.exalt.bankaccount.application.dto.account.operation.DepositCommand;
+import fr.exalt.bankaccount.application.dto.account.operation.DepositResult;
 import fr.exalt.bankaccount.application.port.out.OperationRepository;
 import fr.exalt.bankaccount.domain.model.account.Account;
 import fr.exalt.bankaccount.domain.model.account.operation.Operation;

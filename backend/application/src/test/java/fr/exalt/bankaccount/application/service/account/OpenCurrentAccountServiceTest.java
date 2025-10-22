@@ -1,7 +1,7 @@
 package fr.exalt.bankaccount.application.service.account;
 
-import fr.exalt.bankaccount.application.dto.account.OpenCurrentAccountCommand;
-import fr.exalt.bankaccount.application.dto.account.OpenCurrentAccountResult;
+import fr.exalt.bankaccount.application.dto.account.openaccount.OpenCurrentAccountCommand;
+import fr.exalt.bankaccount.application.dto.account.openaccount.OpenCurrentAccountResult;
 import fr.exalt.bankaccount.application.port.out.AccountRepository;
 import fr.exalt.bankaccount.domain.model.account.Account;
 import fr.exalt.bankaccount.domain.model.account.AccountId;
