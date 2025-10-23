@@ -2,11 +2,9 @@ package fr.exalt.bankaccount.infrastructure.rest.exception;
 
 import fr.exalt.bankaccount.application.exception.AccountNotFoundApplicationException;
 import fr.exalt.bankaccount.domain.model.exception.*;
-import jakarta.persistence.OptimisticLockException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

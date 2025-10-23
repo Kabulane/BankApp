@@ -35,20 +35,17 @@ public class AccountController {
     private final DepositUseCase depositUseCase;
 
     private final AccountRestMapper accountRestMapper;
-    private final OperationRestMapper operationRestMapper;
 
     AccountController(OpenCurrentAccountUseCase openCurrentAccountUseCase,
                       OpenSavingsAccountUseCase openSavingsAccountUseCase,
                       WithdrawUseCase withdrawUseCase,
                       DepositUseCase depositUseCase,
-                      AccountRestMapper accountRestMapper,
-                      OperationRestMapper operationRestMapper) {
+                      AccountRestMapper accountRestMapper) {
         this.openCurrentAccountUseCase = openCurrentAccountUseCase;
         this.openSavingsAccountUseCase = openSavingsAccountUseCase;
         this.withdrawUseCase = withdrawUseCase;
         this.depositUseCase = depositUseCase;
         this.accountRestMapper = accountRestMapper;
-        this.operationRestMapper = operationRestMapper;
     }
 
     @PostMapping("/current")
