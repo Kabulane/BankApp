@@ -1,4 +1,4 @@
-package fr.exalt.bankaccount.infrastructure.rest.dto;
+package fr.exalt.bankaccount.infrastructure.rest.dto.operation;
 
 import java.math.BigDecimal;
 import java.time.Instant;

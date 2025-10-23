@@ -1,7 +1,7 @@
 package fr.exalt.bankaccount.infrastructure.rest.mapper;
 
 import fr.exalt.bankaccount.domain.model.account.operation.Operation;
-import fr.exalt.bankaccount.infrastructure.rest.dto.OperationResponse;
+import fr.exalt.bankaccount.infrastructure.rest.dto.operation.OperationResponse;
 import org.springframework.stereotype.Component;
 
 @Component

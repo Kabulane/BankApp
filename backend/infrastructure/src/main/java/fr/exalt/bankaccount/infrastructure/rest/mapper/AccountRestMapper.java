@@ -2,9 +2,9 @@ package fr.exalt.bankaccount.infrastructure.rest.mapper;
 
 import fr.exalt.bankaccount.application.dto.account.openaccount.OpenAccountResult;
 import fr.exalt.bankaccount.application.dto.account.operation.OperationResult;
-import fr.exalt.bankaccount.infrastructure.rest.dto.AccountCreatedResponse;
-import fr.exalt.bankaccount.infrastructure.rest.dto.AccountOperationResponse;
-import fr.exalt.bankaccount.infrastructure.rest.dto.OperationResponse;
+import fr.exalt.bankaccount.infrastructure.rest.dto.openaccount.AccountCreatedResponse;
+import fr.exalt.bankaccount.infrastructure.rest.dto.operation.AccountOperationResponse;
+import fr.exalt.bankaccount.infrastructure.rest.dto.operation.OperationResponse;
 
 public class AccountRestMapper {
 

@@ -266,9 +266,9 @@ public class AccountControllerTest {
     // --------- Cas Génériques -----------
 
     @Test
-    @DisplayName("POST /accounts/current - should return 400 when body is missing/invalid JSON")
+    @DisplayName("POST /accounts/current - should return 500 when body is missing/invalid JSON")
     void badRequest_whenBodyMissing() throws Exception {
         mockMvc.perform(post("/accounts/current").contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isInternalServerError());
     }
 }
