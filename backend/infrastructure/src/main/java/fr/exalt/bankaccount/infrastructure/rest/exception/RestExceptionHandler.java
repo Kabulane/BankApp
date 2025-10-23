@@ -1,4 +1,4 @@
-package fr.exalt.bankaccount.infrastructure.rest;
+package fr.exalt.bankaccount.infrastructure.rest.exception;
 
 import fr.exalt.bankaccount.application.exception.AccountNotFoundApplicationException;
 import fr.exalt.bankaccount.domain.model.exception.*;

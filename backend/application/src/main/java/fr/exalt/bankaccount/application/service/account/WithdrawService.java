@@ -1,6 +1,7 @@
 package fr.exalt.bankaccount.application.service.account;
 
 import fr.exalt.bankaccount.application.exception.AccountNotFoundApplicationException;
+import fr.exalt.bankaccount.application.port.in.WithdrawUseCase;
 import fr.exalt.bankaccount.application.port.out.AccountRepository;
 import fr.exalt.bankaccount.application.dto.account.operation.WithdrawCommand;
 import fr.exalt.bankaccount.application.dto.account.operation.WithdrawResult;
@@ -10,7 +11,7 @@ import fr.exalt.bankaccount.domain.model.account.operation.Operation;
 
 import java.util.Objects;
 
-public class WithdrawService {
+public class WithdrawService implements WithdrawUseCase {
     private final AccountRepository accountRepository;
     private final OperationRepository operationRepository;
 

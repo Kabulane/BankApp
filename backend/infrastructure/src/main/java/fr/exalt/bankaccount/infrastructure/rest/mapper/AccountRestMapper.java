@@ -1,14 +1,10 @@
-package fr.exalt.bankaccount.infrastructure.rest;
+package fr.exalt.bankaccount.infrastructure.rest.mapper;
 
 import fr.exalt.bankaccount.application.dto.account.openaccount.OpenAccountResult;
 import fr.exalt.bankaccount.application.dto.account.operation.OperationResult;
-import fr.exalt.bankaccount.application.dto.account.operation.WithdrawResult;
 import fr.exalt.bankaccount.infrastructure.rest.dto.AccountCreatedResponse;
 import fr.exalt.bankaccount.infrastructure.rest.dto.AccountOperationResponse;
 import fr.exalt.bankaccount.infrastructure.rest.dto.OperationResponse;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class AccountRestMapper {
 

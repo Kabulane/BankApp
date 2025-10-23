@@ -5,10 +5,12 @@ import fr.exalt.bankaccount.application.dto.account.openaccount.OpenCurrentAccou
 import fr.exalt.bankaccount.application.dto.account.openaccount.OpenSavingsAccountResult;
 import fr.exalt.bankaccount.application.dto.account.operation.WithdrawResult;
 import fr.exalt.bankaccount.application.exception.AccountNotFoundApplicationException;
-import fr.exalt.bankaccount.application.service.account.DepositService;
-import fr.exalt.bankaccount.application.service.account.OpenCurrentAccountService;
-import fr.exalt.bankaccount.application.service.account.OpenSavingsAccountService;
-import fr.exalt.bankaccount.application.service.account.WithdrawService;
+
+import fr.exalt.bankaccount.application.port.in.DepositUseCase;
+import fr.exalt.bankaccount.application.port.in.OpenCurrentAccountUseCase;
+import fr.exalt.bankaccount.application.port.in.OpenSavingsAccountUseCase;
+import fr.exalt.bankaccount.application.port.in.WithdrawUseCase;
+
 import fr.exalt.bankaccount.domain.model.account.Account;
 import fr.exalt.bankaccount.domain.model.account.AccountId;
 import fr.exalt.bankaccount.domain.model.account.operation.Operation;
@@ -17,6 +19,10 @@ import fr.exalt.bankaccount.domain.model.exception.CeilingExceededException;
 import fr.exalt.bankaccount.domain.model.exception.DomainException;
 import fr.exalt.bankaccount.domain.model.exception.InsufficientFundsException;
 import fr.exalt.bankaccount.domain.model.money.Money;
+import fr.exalt.bankaccount.infrastructure.rest.controller.AccountController;
+import fr.exalt.bankaccount.infrastructure.rest.exception.RestExceptionHandler;
+import fr.exalt.bankaccount.infrastructure.rest.mapper.AccountRestMapper;
+import fr.exalt.bankaccount.infrastructure.rest.mapper.OperationRestMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,13 +52,13 @@ public class AccountControllerTest {
     MockMvc mockMvc;
 
     @MockBean
-    OpenCurrentAccountService openCurrentAccountService;
+    OpenCurrentAccountUseCase openCurrentAccountUseCase;
     @MockBean
-    OpenSavingsAccountService openSavingsAccountService;
+    OpenSavingsAccountUseCase openSavingsAccountUseCase;
     @MockBean
-    DepositService depositService;
+    DepositUseCase depositUseCase;
     @MockBean
-    WithdrawService withdrawService;
+    WithdrawUseCase withdrawUseCase;
 
     // ----- Create CURRENT -----
     @Test
@@ -60,7 +66,7 @@ public class AccountControllerTest {
         Account account = Account.openCurrent(Money.of("-500"), Clock.systemUTC());
         OpenCurrentAccountResult result = new OpenCurrentAccountResult(account.getId());
 
-        when(openCurrentAccountService.handle(any())).thenReturn(result);
+        when(openCurrentAccountUseCase.handle(any())).thenReturn(result);
 
         mockMvc.perform(post("/accounts/current")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -74,7 +80,7 @@ public class AccountControllerTest {
 
     @Test
     void create_current_should_throw_business_exception () throws Exception {
-        when(openCurrentAccountService.handle(any())).thenThrow(new BusinessRuleViolationException("Overdraft limit must be zero or negative"));
+        when(openCurrentAccountUseCase.handle(any())).thenThrow(new BusinessRuleViolationException("Overdraft limit must be zero or negative"));
 
         mockMvc.perform(post("/accounts/current")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -91,7 +97,7 @@ public class AccountControllerTest {
         Account account = Account.openSavings(Money.of("500"), Clock.systemUTC());
         OpenSavingsAccountResult result = new OpenSavingsAccountResult(account.getId());
 
-        when(openSavingsAccountService.handle(any())).thenReturn(result);
+        when(openSavingsAccountUseCase.handle(any())).thenReturn(result);
 
         mockMvc.perform(post("/accounts/savings")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -105,7 +111,7 @@ public class AccountControllerTest {
 
     @Test
     void create_savings_should_throw_business_exception () throws Exception {
-        when(openSavingsAccountService.handle(any())).thenThrow(new BusinessRuleViolationException("Ceiling must be strictly positive"));
+        when(openSavingsAccountUseCase.handle(any())).thenThrow(new BusinessRuleViolationException("Ceiling must be strictly positive"));
 
         mockMvc.perform(post("/accounts/savings")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -123,7 +129,7 @@ public class AccountControllerTest {
         Operation operation = Operation.of(accountId, Money.of("50"), Operation.Type.WITHDRAWAL);
         Money balance = Money.of("250");
 
-        when(withdrawService.handle(any())).thenReturn(new WithdrawResult(accountId, balance, operation));
+        when(withdrawUseCase.handle(any())).thenReturn(new WithdrawResult(accountId, balance, operation));
 
         mockMvc.perform(post("/accounts/{id}/withdraw", accountId.value().toString())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -145,7 +151,7 @@ public class AccountControllerTest {
     void withdraw_notFound() throws Exception {
         AccountId accountId = AccountId.newId();
 
-        when(withdrawService.handle(any()))
+        when(withdrawUseCase.handle(any()))
                 .thenThrow(new AccountNotFoundApplicationException(accountId.value().toString()));
 
         mockMvc.perform(post("/accounts/{id}/withdraw", accountId.value().toString())
@@ -160,7 +166,7 @@ public class AccountControllerTest {
     @DisplayName("POST /accounts/{id}/withdraw - should return 400 when business rule fails")
     void withdraw_businessRuleViolation() throws Exception {
         AccountId accountId = AccountId.newId();
-        when(withdrawService.handle(any()))
+        when(withdrawUseCase.handle(any()))
                 .thenThrow(InsufficientFundsException.class);
 
         mockMvc.perform(post("/accounts/{id}/withdraw", accountId.value().toString())
@@ -177,7 +183,7 @@ public class AccountControllerTest {
         UUID accountId = UUID.randomUUID();
 
         // On simule que la couche service rejette ce cas métier
-        when(withdrawService.handle(any()))
+        when(withdrawUseCase.handle(any()))
                 .thenThrow(new BusinessRuleViolationException("Withdraw amount must be strictly positive"));
 
         mockMvc.perform(post("/accounts/{id}/withdraw", accountId)
@@ -195,7 +201,7 @@ public class AccountControllerTest {
         Operation operation = Operation.of(accountId, Money.of("50"), Operation.Type.DEPOSIT);
         Money balance = Money.of("250");
 
-        when(depositService.handle(any())).thenReturn(new DepositResult(accountId, balance, operation));
+        when(depositUseCase.handle(any())).thenReturn(new DepositResult(accountId, balance, operation));
 
         mockMvc.perform(post("/accounts/{id}/deposit", accountId.value().toString())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -217,7 +223,7 @@ public class AccountControllerTest {
     void deposit_notFound() throws Exception {
         AccountId accountId = AccountId.newId();
 
-        when(depositService.handle(any()))
+        when(depositUseCase.handle(any()))
                 .thenThrow(new AccountNotFoundApplicationException(accountId.value().toString()));
 
         mockMvc.perform(post("/accounts/{id}/deposit", accountId.value().toString())
@@ -232,7 +238,7 @@ public class AccountControllerTest {
     @DisplayName("POST /accounts/{id}/deposit - should return 400 when business rule fails")
     void deposit_businessRuleViolation() throws Exception {
         AccountId accountId = AccountId.newId();
-        when(depositService.handle(any()))
+        when(depositUseCase.handle(any()))
                 .thenThrow(CeilingExceededException.class);
 
         mockMvc.perform(post("/accounts/{id}/deposit", accountId.value().toString())
@@ -248,7 +254,7 @@ public class AccountControllerTest {
     void deposit_negativeAmount_returns400() throws Exception {
         UUID accountId = UUID.randomUUID();
 
-        when(depositService.handle(any()))
+        when(depositUseCase.handle(any()))
                 .thenThrow(new DomainException("Deposit amount must be strictly positive"));
 
         mockMvc.perform(post("/accounts/{id}/deposit", accountId)

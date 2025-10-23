@@ -1,8 +1,9 @@
-package fr.exalt.bankaccount.infrastructure.rest;
+package fr.exalt.bankaccount.infrastructure.rest.controller;
 
 import fr.exalt.bankaccount.application.service.operation.OperationService;
 import fr.exalt.bankaccount.domain.model.account.AccountId;
 import fr.exalt.bankaccount.domain.model.account.operation.Operation;
+import fr.exalt.bankaccount.infrastructure.rest.mapper.OperationRestMapper;
 import fr.exalt.bankaccount.infrastructure.rest.dto.OperationResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

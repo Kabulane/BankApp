@@ -2,7 +2,9 @@ package fr.exalt.bankaccount.application.service.account;
 
 import fr.exalt.bankaccount.application.dto.account.operation.DepositCommand;
 import fr.exalt.bankaccount.application.dto.account.operation.DepositResult;
+import fr.exalt.bankaccount.application.dto.account.operation.OperationResult;
 import fr.exalt.bankaccount.application.exception.AccountNotFoundApplicationException;
+import fr.exalt.bankaccount.application.port.in.DepositUseCase;
 import fr.exalt.bankaccount.application.port.out.AccountRepository;
 import fr.exalt.bankaccount.application.port.out.OperationRepository;
 import fr.exalt.bankaccount.domain.model.account.Account;
@@ -61,11 +63,11 @@ public class DepositServiceTest {
         Account account = Account.openCurrent(Money.of("-300"), clock);
         accountRepository.save(account);
 
-        DepositService service = new DepositService(accountRepository, operationRepository);
+        DepositUseCase service = new DepositService(accountRepository, operationRepository);
         DepositCommand cmd = new DepositCommand(account.getId(), Money.of("200"));
 
         // when
-        DepositResult result = service.handle(cmd);
+        OperationResult result = service.handle(cmd);
 
         // then
         //  // account
@@ -88,7 +90,7 @@ public class DepositServiceTest {
         Account account = Account.openCurrent(Money.of("-300"), clock);
         accountRepository.save(account);
 
-        DepositService service = new DepositService(accountRepository, operationRepository);
+        DepositUseCase service = new DepositService(accountRepository, operationRepository);
         DepositCommand cmd = new DepositCommand(account.getId(), Money.of("-200"));
 
         assertThatThrownBy(() -> service.handle(cmd)).isInstanceOf(BusinessRuleViolationException.class);
@@ -100,7 +102,7 @@ public class DepositServiceTest {
         AccountRepository accountRepository = new InMemoryAccountRepository();
         OperationRepository operationRepository = new InMemoryOperationRepository();
 
-        DepositService service = new DepositService(accountRepository, operationRepository);
+        DepositUseCase service = new DepositService(accountRepository, operationRepository);
         Account account = Account.openSavings(Money.of("100"), clock);
         accountRepository.save(account);
 
@@ -115,7 +117,7 @@ public class DepositServiceTest {
         AccountRepository accountRepository = new InMemoryAccountRepository();
         OperationRepository operationRepository = new InMemoryOperationRepository();
 
-        DepositService service = new DepositService(accountRepository, operationRepository);
+        DepositUseCase service = new DepositService(accountRepository, operationRepository);
         AccountId unknownId = AccountId.newId();
 
         DepositCommand cmd = new DepositCommand(unknownId, Money.of("350"));

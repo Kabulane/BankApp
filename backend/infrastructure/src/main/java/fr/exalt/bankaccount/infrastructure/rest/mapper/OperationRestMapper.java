@@ -1,4 +1,4 @@
-package fr.exalt.bankaccount.infrastructure.rest;
+package fr.exalt.bankaccount.infrastructure.rest.mapper;
 
 import fr.exalt.bankaccount.domain.model.account.operation.Operation;
 import fr.exalt.bankaccount.infrastructure.rest.dto.OperationResponse;
