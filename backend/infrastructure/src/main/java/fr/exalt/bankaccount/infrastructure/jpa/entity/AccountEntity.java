@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.springframework.data.annotation.Version;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -14,6 +15,9 @@ public class AccountEntity {
 
     @Id
     private UUID id;
+
+    @Version
+    private long version;
 
     @Column(nullable = false)
     private String type; // "SAVINGS" / "CURRENT"

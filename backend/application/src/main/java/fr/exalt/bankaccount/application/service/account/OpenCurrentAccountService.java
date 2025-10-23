@@ -5,10 +5,12 @@ import fr.exalt.bankaccount.application.port.out.AccountRepository;
 import fr.exalt.bankaccount.application.dto.account.openaccount.OpenCurrentAccountCommand;
 import fr.exalt.bankaccount.application.dto.account.openaccount.OpenCurrentAccountResult;
 import fr.exalt.bankaccount.domain.model.account.Account;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.util.Objects;
 
+@Transactional
 public class OpenCurrentAccountService implements OpenCurrentAccountUseCase {
 
     private final AccountRepository repository;

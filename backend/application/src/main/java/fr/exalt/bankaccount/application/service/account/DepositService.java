@@ -8,9 +8,11 @@ import fr.exalt.bankaccount.application.dto.account.operation.DepositResult;
 import fr.exalt.bankaccount.application.port.out.OperationRepository;
 import fr.exalt.bankaccount.domain.model.account.Account;
 import fr.exalt.bankaccount.domain.model.account.operation.Operation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
+@Transactional
 public class DepositService implements DepositUseCase {
     private final AccountRepository accountRepository;
     private final OperationRepository operationRepository;

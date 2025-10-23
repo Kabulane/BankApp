@@ -3,6 +3,7 @@ package fr.exalt.bankaccount.application.service.operation;
 import fr.exalt.bankaccount.application.port.out.OperationRepository;
 import fr.exalt.bankaccount.domain.model.account.AccountId;
 import fr.exalt.bankaccount.domain.model.account.operation.Operation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -10,6 +11,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 
+@Transactional
 public class OperationService {
     private final OperationRepository operationRepository;
     private final Clock clock;
