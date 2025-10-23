@@ -53,4 +53,9 @@ public class ApplicationServiceConfig {
     public OperationService operationService(OperationRepository operationRepository, Clock clock) {
         return new OperationService(operationRepository, clock);
     }
+
+    @Bean
+    public Clock clock() {
+        return Clock.systemDefaultZone();
+    }
 }

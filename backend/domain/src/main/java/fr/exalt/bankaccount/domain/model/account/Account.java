@@ -73,15 +73,15 @@ public class Account {
     // Factories d'ouverture
     // ---------------------
 
-    public static Account openCurrent(Money authorizedOverdaft, Clock clock) {
+    public static Account openCurrent(Money overdaft, Clock clock) {
         // Paramétrage des policies
-        if (authorizedOverdaft == null || authorizedOverdaft.isGreaterThan(Money.zero())) {
+        if (overdaft == null || overdaft.isGreaterThan(Money.zero())) {
             throw new BusinessRuleViolationException("Overdraft limit must be zero or negative");
         }
 
         return new Account(
                 AccountId.newId(), Type.CURRENT, clock,  Money.zero(),
-                new FixedOverdraft(authorizedOverdaft), new NoCeiling());
+                new FixedOverdraft(overdaft), new NoCeiling());
 
     }
     public static Account openSavings(Money ceiling, Clock clock) {

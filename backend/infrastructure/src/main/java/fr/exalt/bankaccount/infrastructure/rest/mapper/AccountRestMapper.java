@@ -15,7 +15,7 @@ public class AccountRestMapper {
     }
 
     public AccountCreatedResponse toCreateResponse(OpenAccountResult result) {
-        return new AccountCreatedResponse(result.accountId().toString());
+        return new AccountCreatedResponse(result.accountId().value().toString());
     }
 
     public AccountOperationResponse toAccountOperationResponse(OperationResult result) {
@@ -26,7 +26,7 @@ public class AccountRestMapper {
         // }
         OperationResponse op = operationRestMapper.toResponse(result.operation());
         return new AccountOperationResponse(
-                result.accountId().toString(),
+                result.accountId().value().toString(),
                 result.newBalance().value(),
                 op
         );

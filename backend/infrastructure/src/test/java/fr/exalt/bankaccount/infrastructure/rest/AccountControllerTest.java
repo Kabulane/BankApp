@@ -75,7 +75,7 @@ public class AccountControllerTest {
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(result.accountId().toString()));
+                .andExpect(jsonPath("$.id").value(result.accountId().value().toString()));
     }
 
     @Test
@@ -106,7 +106,7 @@ public class AccountControllerTest {
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(result.accountId().toString()));
+                .andExpect(jsonPath("$.id").value(result.accountId().value().toString()));
     }
 
     @Test
@@ -137,7 +137,7 @@ public class AccountControllerTest {
                             {"amount": 200}
                             """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accountId").value(accountId.toString()))
+                .andExpect(jsonPath("$.accountId").value(accountId.value().toString()))
                 .andExpect(jsonPath("$.newBalance").value(250))
                 .andExpect(jsonPath("$.operation.id").value(operation.id().value().toString()))
                 .andExpect(jsonPath("$.operation.type").value("WITHDRAWAL"))
@@ -209,7 +209,7 @@ public class AccountControllerTest {
                             {"amount": 50}
                             """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accountId").value(accountId.toString()))
+                .andExpect(jsonPath("$.accountId").value(accountId.value().toString()))
                 .andExpect(jsonPath("$.newBalance").value(250))
                 .andExpect(jsonPath("$.operation.id").value(operation.id().value().toString()))
                 .andExpect(jsonPath("$.operation.type").value("DEPOSIT"))
