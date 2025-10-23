@@ -3,15 +3,36 @@ package fr.exalt.bankaccount.infrastructure.rest;
 import fr.exalt.bankaccount.application.dto.account.openaccount.OpenAccountResult;
 import fr.exalt.bankaccount.application.dto.account.operation.OperationResult;
 import fr.exalt.bankaccount.application.dto.account.operation.WithdrawResult;
+import fr.exalt.bankaccount.infrastructure.rest.dto.AccountCreatedResponse;
+import fr.exalt.bankaccount.infrastructure.rest.dto.AccountOperationResponse;
+import fr.exalt.bankaccount.infrastructure.rest.dto.OperationResponse;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class AccountRestMapper {
-    public Object toCreateResponse(OpenAccountResult result) {
-        return null;
+
+    private final OperationRestMapper operationRestMapper;
+
+    public AccountRestMapper (OperationRestMapper operationRestMapper) {
+        this.operationRestMapper = operationRestMapper;
     }
 
-    public Map<String, Object> toOperationResponse(OperationResult result) {
-        return null;
+    public AccountCreatedResponse toCreateResponse(OpenAccountResult result) {
+        return new AccountCreatedResponse(result.accountId().toString());
+    }
+
+    public AccountOperationResponse toAccountOperationResponse(OperationResult result) {
+        // {
+        //   "accountId": "<uuid>",
+        //   "newBalance": 250,
+        //   "operation": { "id": "...", "type": "DEPOSIT|WITHDRAWAL", "amount": 50, "at": "...", "label": "..." }
+        // }
+        OperationResponse op = operationRestMapper.toResponse(result.operation());
+        return new AccountOperationResponse(
+                result.accountId().toString(),
+                result.newBalance().value(),
+                op
+        );
     }
 }

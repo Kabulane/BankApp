@@ -125,7 +125,7 @@ public class AccountControllerTest {
 
         when(withdrawService.handle(any())).thenReturn(new WithdrawResult(accountId, balance, operation));
 
-        mockMvc.perform(post("/accounts/{id}/withdraw")
+        mockMvc.perform(post("/accounts/{id}/withdraw", accountId.value().toString())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""
                             {"amount": 200}
@@ -133,7 +133,7 @@ public class AccountControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accountId").value(accountId.toString()))
                 .andExpect(jsonPath("$.newBalance").value(250))
-                .andExpect(jsonPath("$.operation.id").value(operation.id().toString()))
+                .andExpect(jsonPath("$.operation.id").value(operation.id().value().toString()))
                 .andExpect(jsonPath("$.operation.type").value("WITHDRAWAL"))
                 .andExpect(jsonPath("$.operation.amount").value(50))
                 .andExpect(jsonPath("$.operation.at").value(operation.at().toString()))
@@ -148,7 +148,7 @@ public class AccountControllerTest {
         when(withdrawService.handle(any()))
                 .thenThrow(new AccountNotFoundApplicationException(accountId.value().toString()));
 
-        mockMvc.perform(post("/accounts/{id}/withdraw", accountId)
+        mockMvc.perform(post("/accounts/{id}/withdraw", accountId.value().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"amount": 50}
@@ -168,7 +168,7 @@ public class AccountControllerTest {
                         .content("""
                                 {"amount": 999999}
                                 """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -197,7 +197,7 @@ public class AccountControllerTest {
 
         when(depositService.handle(any())).thenReturn(new DepositResult(accountId, balance, operation));
 
-        mockMvc.perform(post("/accounts/{id}/deposit")
+        mockMvc.perform(post("/accounts/{id}/deposit", accountId.value().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                             {"amount": 50}
@@ -205,7 +205,7 @@ public class AccountControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accountId").value(accountId.toString()))
                 .andExpect(jsonPath("$.newBalance").value(250))
-                .andExpect(jsonPath("$.operation.id").value(operation.id().toString()))
+                .andExpect(jsonPath("$.operation.id").value(operation.id().value().toString()))
                 .andExpect(jsonPath("$.operation.type").value("DEPOSIT"))
                 .andExpect(jsonPath("$.operation.amount").value(50))
                 .andExpect(jsonPath("$.operation.at").value(operation.at().toString()))
@@ -220,7 +220,7 @@ public class AccountControllerTest {
         when(depositService.handle(any()))
                 .thenThrow(new AccountNotFoundApplicationException(accountId.value().toString()));
 
-        mockMvc.perform(post("/accounts/{id}/deposit", accountId)
+        mockMvc.perform(post("/accounts/{id}/deposit", accountId.value().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"amount": 50}
@@ -240,7 +240,7 @@ public class AccountControllerTest {
                         .content("""
                                 {"amount": 999999}
                                 """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnprocessableEntity());
     }
 
     @Test

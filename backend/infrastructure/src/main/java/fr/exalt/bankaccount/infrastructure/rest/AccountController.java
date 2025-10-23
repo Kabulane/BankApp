@@ -1,8 +1,10 @@
 package fr.exalt.bankaccount.infrastructure.rest;
 
+import fr.exalt.bankaccount.application.dto.account.openaccount.OpenAccountResult;
 import fr.exalt.bankaccount.application.dto.account.operation.DepositCommand;
 import fr.exalt.bankaccount.application.dto.account.openaccount.OpenCurrentAccountCommand;
 import fr.exalt.bankaccount.application.dto.account.openaccount.OpenSavingsAccountCommand;
+import fr.exalt.bankaccount.application.dto.account.operation.OperationResult;
 import fr.exalt.bankaccount.application.dto.account.operation.WithdrawCommand;
 import fr.exalt.bankaccount.application.service.account.DepositService;
 import fr.exalt.bankaccount.application.service.account.OpenCurrentAccountService;
@@ -10,6 +12,9 @@ import fr.exalt.bankaccount.application.service.account.OpenSavingsAccountServic
 import fr.exalt.bankaccount.application.service.account.WithdrawService;
 import fr.exalt.bankaccount.domain.model.account.AccountId;
 import fr.exalt.bankaccount.domain.model.money.Money;
+import fr.exalt.bankaccount.infrastructure.rest.dto.AccountCreatedResponse;
+import fr.exalt.bankaccount.infrastructure.rest.dto.AccountOperationResponse;
+import fr.exalt.bankaccount.infrastructure.rest.dto.OperationResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,30 +49,30 @@ public class AccountController {
     }
 
     @PostMapping("/current")
-    public ResponseEntity<?> openCurrent(@RequestBody Map<String, Object> body) {
-        var overdraft = Money.of(String.valueOf(body.get("overdraft")));
-        var result = openCurrentAccountService.handle(new OpenCurrentAccountCommand(overdraft));
+    public ResponseEntity<AccountCreatedResponse> openCurrent(@RequestBody Map<String, Object> body) {
+        Money overdraft = Money.of(String.valueOf(body.get("overdraft")));
+        OpenAccountResult result = openCurrentAccountService.handle(new OpenCurrentAccountCommand(overdraft));
         return ResponseEntity.status(201).body(accountRestMapper.toCreateResponse(result));
     }
 
     @PostMapping("/savings")
-    public ResponseEntity<?> openSavings(@RequestBody Map<String, Object> body) {
-        var ceiling = Money.of(String.valueOf(body.get("ceiling")));
-        var result = openSavingsAccountService.handle(new OpenSavingsAccountCommand(ceiling));
+    public ResponseEntity<AccountCreatedResponse> openSavings(@RequestBody Map<String, Object> body) {
+        Money ceiling = Money.of(String.valueOf(body.get("ceiling")));
+        OpenAccountResult result = openSavingsAccountService.handle(new OpenSavingsAccountCommand(ceiling));
         return ResponseEntity.status(201).body(accountRestMapper.toCreateResponse(result));
     }
 
     @PostMapping("/{id}/withdraw")
-    public Map<String, Object> withdraw(@PathVariable UUID id, @RequestBody Map<String, Object> body) {
-        var amount = Money.of(String.valueOf(body.get("amount")));
-        var result = withdrawService.handle(new WithdrawCommand(new AccountId(id), amount));
-        return accountRestMapper.toOperationResponse(result);
+    public ResponseEntity<AccountOperationResponse> withdraw(@PathVariable("id") UUID id, @RequestBody Map<String, Object> body) {
+        Money amount = Money.of(String.valueOf(body.get("amount")));
+        OperationResult result = withdrawService.handle(new WithdrawCommand(new AccountId(id), amount));
+        return ResponseEntity.status(200).body(accountRestMapper.toAccountOperationResponse(result));
     }
 
     @PostMapping("/{id}/deposit")
-    public Map<String, Object> deposit(@PathVariable UUID id, @RequestBody Map<String, Object> body) {
-        var amount = Money.of(String.valueOf(body.get("amount")));
-        var result = depositService.handle(new DepositCommand(new AccountId(id), amount));
-        return accountRestMapper.toOperationResponse(result);
+    public ResponseEntity<AccountOperationResponse> deposit(@PathVariable("id") UUID id, @RequestBody Map<String, Object> body) {
+        Money amount = Money.of(String.valueOf(body.get("amount")));
+        OperationResult result = depositService.handle(new DepositCommand(new AccountId(id), amount));
+        return ResponseEntity.status(200).body(accountRestMapper.toAccountOperationResponse(result));
     }
 }
