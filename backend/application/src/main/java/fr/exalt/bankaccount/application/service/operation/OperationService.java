@@ -3,7 +3,7 @@ package fr.exalt.bankaccount.application.service.operation;
 import fr.exalt.bankaccount.application.port.out.OperationRepository;
 import fr.exalt.bankaccount.domain.model.account.AccountId;
 import fr.exalt.bankaccount.domain.model.account.operation.Operation;
-import org.springframework.transaction.annotation.Transactional;
+import jakarta.transaction.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;

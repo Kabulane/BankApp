@@ -5,7 +5,7 @@ import fr.exalt.bankaccount.application.port.out.AccountRepository;
 import fr.exalt.bankaccount.application.dto.account.openaccount.OpenSavingsAccountCommand;
 import fr.exalt.bankaccount.application.dto.account.openaccount.OpenSavingsAccountResult;
 import fr.exalt.bankaccount.domain.model.account.Account;
-import org.springframework.transaction.annotation.Transactional;
+import jakarta.transaction.Transactional;
 
 import java.time.Clock;
 import java.util.Objects;
