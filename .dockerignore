@@ -1,0 +1,34 @@
+# --- Fichiers et dossiers inutiles pour le build ---
+.git
+.gitignore
+.idea
+.vscode
+*.iml
+*.log
+*.tmp
+.DS_Store
+
+# --- Dossiers de build Maven ---
+**/target
+**/build
+
+# --- Fichiers système et OS ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Frontend / autres modules ---
+frontend/node_modules
+frontend/dist
+frontend/.nuxt
+frontend/.next
+
+# --- Documents et ressources inutiles ---
+docs/
+README.md
+README-*.md
+
+# --- Configs locales et exemples ---
+.env
+.env.example
+docker-compose.override.yml
