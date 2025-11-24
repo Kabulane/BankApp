@@ -11,3 +11,9 @@ logging:
     root: INFO
     org.springframework: INFO
     com.yourorg: DEBUG
+
+bank:
+  kafka:
+    topics:
+      operations: bank.operations
+      accounts: bank.accounts
