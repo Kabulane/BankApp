@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -50,9 +52,9 @@ public class DepositServiceTest {
         }
     }
 
-    Clock clock = Clock.fixed(Instant.parse("2025-10-21T08:00:00Z"), ZoneOffset.UTC);
-    Instant before = Clock.fixed(Instant.parse("2025-09-21T08:00:00Z"), ZoneOffset.UTC).instant();
-    Instant after = Clock.fixed(Instant.parse("2025-11-21T08:00:00Z"), ZoneOffset.UTC).instant();
+    Clock clock = Clock.fixed(Instant.now(), ZoneOffset.UTC);
+    Instant before = Instant.now().minus(31l, ChronoUnit.DAYS);
+    Instant after = Instant.now().plus(31l, ChronoUnit.DAYS);
     
     @Test
     void deposit_should_increase_balance_and_persist() {
