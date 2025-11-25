@@ -46,7 +46,7 @@ services:
       - "9094:9094"  # exposé Windows host
     environment:
       KAFKA_NODE_ID: 1
-      CLUSTER_ID: "Bf3Kd8JRTuWEL-mQw2vjmA"     # ← ID fixe obligatoire en KRaft
+      CLUSTER_ID: "Bf3Kd8JRTuWEL-mQw2vjmA"
 
       KAFKA_PROCESS_ROLES: "broker,controller"
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
